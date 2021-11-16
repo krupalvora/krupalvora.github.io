@@ -1,0 +1,14 @@
+.tl{
+    width: 20%;
+    height: 30vh;
+    margin: 20px 10px;
+    border: 2px solid rgb(255, 255, 255);
+    border-radius: 10px 10px 10px 10px;
+    overflow: hidden;
+}
+.tl-img{
+    object-fit: contain;
+    max-width:100%;
+    max-height:100%;
+    align-items: center;
+}

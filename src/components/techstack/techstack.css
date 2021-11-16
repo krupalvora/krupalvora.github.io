@@ -1,0 +1,30 @@
+.t{
+    padding: 50px 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.t-texts{
+    width: 65%;
+}
+.t-title{
+    font-size: 50px;
+    font-weight: 600;
+}
+.t-desc{
+    margin: 20px 0px;
+}
+.t-list{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+.t2-list{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
