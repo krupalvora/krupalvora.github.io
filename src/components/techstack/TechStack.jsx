@@ -5,7 +5,7 @@ import { tech } from "../../data1"
 import { tech2 } from "../../data2"
 const TechStack = () => {
     return (
-        <div className='t'>
+        <div id="technologies" className='t'>
             <div className="t-texts">
                 <h1 className="t-title"> Technologies</h1>
             </div>

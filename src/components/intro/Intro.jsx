@@ -5,7 +5,7 @@ import profile from "../../img/profile-2.png"
 
 const intro = () => {
     return (
-        <div className="intro">
+        <div id="home" className="intro">
             <div className="intro-left">
                 <div className="intro-left-wrapper">
                     <h2 className="intro-intro">Hello, MySelf </h2>

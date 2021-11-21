@@ -1,17 +1,33 @@
 export const projects = [
+    
     {
-        id: 1,
-        img: require("./img/angry.gif").default,
-        link: "https://github.com/krupalvora/Bill-Book"
+        id:1,
+        img: require("./img/url.gif").default,
+        link: "https://kvurl.herokuapp.com/",
+        name:"Url Shortner"
     },
     {
-        id:2,
-        img: "https://www.relidy.com/Images/WebPackages/Relidy%20Full%20Service%20Package%20Sample%20Home%20Page.png",
-        link: "https://kvurl.herokuapp.com/"
+        id: 2,
+        img: require("./img/be.gif").default,
+        link: "https://github.com/krupalvora/BE-DashBoard/tree/master",
+        name:"Event Managment"
     },
     {
         id: 3,
-        img: "https://www.balancedancestudios.com/wp-content/uploads/2017/03/scroll-long-19-131x300.png",
-        link: "https://github.com/krupalvora/BE-DashBoard/tree/master"
+        img: require("./img/todo.gif").default,
+        link: "https://github.com/krupalvora/BE-DashBoard/tree/master",
+        name:"ToDo List"
+    },
+    {
+        id: 4,
+        img: require("./img/bb.gif").default,
+        link: "https://github.com/krupalvora/Bill-Book",
+        name:"BillBook"
+    },
+    {
+        id: 5,
+        img: require("./img/todo.gif").default,
+        link: "https://github.com/krupalvora/Bill-Book",
+        name:"Advance Emi calculator"
     }
 ];

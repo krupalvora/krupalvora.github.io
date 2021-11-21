@@ -1,5 +1,5 @@
 import "./list.css"
-const List = ({img,link}) => {
+const List = ({img,link,name}) => {
     return (
         <div className='pl'>
            <div className="pl-browser">
@@ -7,9 +7,9 @@ const List = ({img,link}) => {
                <div className="pl-circle"></div>
                <div className="pl-circle"></div>
            </div>
-           <a href={link} target="_blank" rel="noreferrer">
+           <a  className="pl-title" href={link} target="_blank" rel="noreferrer">
             <img src={img} alt="" className="pl-img" />
-           </a>
+           <p >{name}</p></a>
         </div>
     )
 }

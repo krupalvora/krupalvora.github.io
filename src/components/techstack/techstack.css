@@ -1,5 +1,5 @@
 .t{
-    padding: 50px 100px;
+    padding: 5px 100px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -11,6 +11,8 @@
 .t-title{
     font-size: 50px;
     font-weight: 600;
+    text-align: center;
+    align-items: center;
 }
 .t-desc{
     margin: 20px 0px;
@@ -27,4 +29,11 @@
     justify-content: center;
     width: 100%;
 }
+@media screen  and (max-width:480px){
 
+    .t{
+        padding: 10px;        
+    }
+
+
+  }
