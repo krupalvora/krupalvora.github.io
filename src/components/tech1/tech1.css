@@ -18,3 +18,11 @@
     -webkit-transform: scale(1.2); /* Safari 3-8 */
     transform: scale(1.2); 
   }
+  @media screen  and (max-width:480px){
+
+    .t2{
+       width: 15%;
+       height: 7vh;       
+    }
+
+  }

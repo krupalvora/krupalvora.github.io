@@ -26,5 +26,8 @@
     .p{
         padding: 10px;        
     }
+    .p-texts{
+        width: 90%;
+    }
 
   }

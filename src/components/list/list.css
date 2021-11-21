@@ -40,3 +40,12 @@
     background-color: rgb(4, 91, 161);
     color: white;
 }
+@media screen  and (max-width:480px){
+
+    .pl{
+       width: 80%;
+       height: 25vh;    
+       margin: 0px 0px;   
+    }
+
+  }

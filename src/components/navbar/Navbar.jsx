@@ -15,7 +15,7 @@ const Navbar = () => {
             <a href="#about">about</a>
             <a href="#contact">Contact</a>
             <a href="#about">About</a>
-            <button>dark</button>
+            
             <a href="javascript:void(0);" className="icon" onClick={myFunction}>
                 <i class="fa fa-bars"></i>
             </a>

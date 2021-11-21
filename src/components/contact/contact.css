@@ -1,6 +1,6 @@
 .c{
     
-    height: 100vh;
+    height: 90vh;
     position: relative;
 }
 .c-bg{
@@ -71,7 +71,7 @@
     font-size: 20px;
     padding-left: 10px;
 }
-button{
+.c-button{
     border: none;
     padding: 15px;
     background-color: grey;
@@ -79,13 +79,57 @@ button{
     cursor: pointer;
     font-size: 20px;
 }
-button:hover {
+.c-button:hover {
     background-color: rgb(4, 91, 161);
     color: white;
 }
-
+.c-copy{
+    margin-bottom: 10%;
+    margin-left: 45%;
+    align-items: center;
+}
 @media screen  and (max-width:480px){
     .c-wrapper{
         flex-direction: column;
+        padding: 0px 50px; 
+        height: 95vh;
     }
+    .c-title{
+        font-size: 30px;
+    }
+    .c-info-item{
+        margin: 10px 0px;
+        width: 100%;
+        font-weight: 200;
+    }
+    /* .c-desc{
+        display: none ;
+    } */
+    .c-form{
+        margin-top: 20px; 
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .c-input{
+        width: 100%;
+        height: 40px;
+        margin: 10px;
+        margin-left: 0px;
+    }
+    .c-button{
+        width: 100%;
+        margin-top: 10px;
+    }
+    .c-icon{
+        width: 8%;
+        height: 8%;
+        margin-right: 10%;
+    }
+    .c-copy{
+        margin-top: 5%;
+        margin-bottom: 5%;
+        margin-left: 20%;
+        align-items: center;
+    }
+  
 }

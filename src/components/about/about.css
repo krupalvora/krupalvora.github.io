@@ -45,6 +45,16 @@
 .a-button{
     margin-bottom: 5%;
     align-items: center;
+    border: none;
+    padding: 15px;
+    background-color: grey;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 20px;
+}
+.a-button:hover {
+    background-color: rgb(4, 91, 161);
+    color: white;
 }
 @media screen  and (max-width:480px){
     .a{

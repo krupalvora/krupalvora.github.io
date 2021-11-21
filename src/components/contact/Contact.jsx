@@ -60,35 +60,18 @@ import React, { useState } from "react";
                     <p className="c-desc">
                         <b>What's your story?</b> Get in touch with me.
                     </p>
-                    {/* <Form className="px-2" ref={formRef} onSubmit={handlesubmit}>
-                        <Form.Group className="mb-3 " controlId="formBasicEmail">
-                            <Form.Control type="text" placeholder="Name" name="user_name" />
-                        </Form.Group>
 
-                        <Form.Group className="mb-3" controlId="formBasicPassword">
-                            <Form.Control type="text" placeholder="Email" name="user_email" />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3" controlId="formBasicPassword">
-                            <Form.Control type="text" placeholder="Subject" name="user_subject" />
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                            <Form.Control  name="message"  placeholder ="Message" as="textarea" rows={5} />
-                        </Form.Group>
-                        <Button variant="primary" type="submit">
-                            Submit
-                        </Button>{done && "Thank you ... message sent successfully"}
-                    </Form> */}
                     <form className="c-form" ref={formRef} onSubmit={handlesubmit}>
                         <input className="c-input" type="text" placeholder="Name" name="user_name" />
                         <input className="c-input" type="text" placeholder="Email" name="user_email" />
                         <input  className="c-input"type="text" placeholder="Subject" name="user_subject" />
                         <textarea className="c-textarea" name="message"  placeholder ="Message" rows="5"></textarea>
-                        <button>Submit</button>
+                        <button className="c-button">Submit</button>
                         {done && "Thank you ... message sent successfully"}
-                    </form> 
+                    </form>
                 </div>
             </div>
+            <p className="c-copy">Copyright  &copy; krupalvora.github.io </p> 
         </div>
     )
 }
