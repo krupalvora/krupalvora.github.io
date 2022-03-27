@@ -19,14 +19,18 @@ const intro = () => {
                         </div>
                     </div>
                     <p className="intro-desc">
-                    It should briefly present the main ideas in the original text. The introduction should include the name of the author, the title of their work, and some background information about the author, if needed. In the main body paragraphs, state the ideas you've chosen while reading the text
+                        <div className="div">I am  tech enthustic and always eager to learn new things.</div>
+                        To deliver quality products and services to the community with a synergistic attitude. Looking for a dynamic
+                        and progressive company where my skills are utilized in the maximum way possible. Learning new
+                        technologies throughout life for the progress of the community and myself.
+                        <br /><a href="https://drive.google.com/file/d/12r0XVjXK2aMwwYsyQqJZZKKS2ehf419F/view?usp=sharing" rel="noreferrer" target="_blank"><button className="a-button">Resume</button></a>
                     </p>
+
                 </div>
-                
             </div>
-            <div className="intro-right"> 
-            <div className="intro-bg"></div>
-            <img src={profile} alt="krupal vora" className='intro-img' />
+            <div className="intro-right">
+                <div className="intro-bg"></div>
+                <img src={profile} alt="krupal vora" className='intro-img' />
             </div>
         </div>
     )
