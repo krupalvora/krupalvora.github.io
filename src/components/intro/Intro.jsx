@@ -2,13 +2,12 @@ import "./intro.css"
 import profile from "../../img/profile-2.png"
 
 
-
 const intro = () => {
     return (
         <div id="home" className="intro">
             <div className="intro-left">
                 <div className="intro-left-wrapper">
-                    <h2 className="intro-intro">Hello, MySelf </h2>
+                    <h2 className="intro-intro">Hello, MySelf</h2>
                     <h1 className="intro-name">Krupal Vora </h1>
                     <div className="intro-title">
                         <div className="intro-title-wrapper">
@@ -20,11 +19,10 @@ const intro = () => {
                     </div>
                     <p className="intro-desc">
                         <div className="div">I am  tech enthustic and always eager to learn new things.</div>
-                        To deliver quality products and services to the community with a synergistic attitude. Looking for a dynamic
-                        and progressive company where my skills are utilized in the maximum way possible. Learning new
-                        technologies throughout life for the progress of the community and myself.
-                        <br /><a href="https://drive.google.com/file/d/12r0XVjXK2aMwwYsyQqJZZKKS2ehf419F/view?usp=sharing" rel="noreferrer" target="_blank"><button className="a-button">Resume</button></a>
-                    </p>
+                        I aim  deliver quality products and services to the community with a synergistic attitude.I believe in Learning new
+                        technologies & to keep myself updated.
+{/*                         <br /><a href="https://drive.google.com/file/d/12r0XVjXK2aMwwYsyQqJZZKKS2ehf419F/view?usp=sharing" rel="noreferrer" target="_blank"><button className="a-button">Resume</button></a>
+ */}                    </p>
 
                 </div>
             </div>

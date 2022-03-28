@@ -7,7 +7,7 @@ const TechStack = () => {
     return (
         <div id="technologies" className='t'>
             <div className="t-texts">
-                <h1 className="t-title"> Technologies</h1>
+                <h1 className="t-title"> Technologies <div className="blink_me">_</div></h1>
             </div>
             <div className="t-list">
                 {tech.map((item) => (

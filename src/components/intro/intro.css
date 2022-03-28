@@ -21,14 +21,32 @@
     font-weight: bold;
     color: black;
     margin-bottom: 1rem;
+    font-family: Aclonica;
+    overflow: hidden;
+    border-right: .07em solid orange; 
+    white-space: nowrap; 
+    letter-spacing: .07em; 
+    animation: 
+      typing 3.5s steps(30, end),
+      blink-caret .5s step-end infinite;
 }
 .intro-intro{
-    margin-top: 5%;
+    margin: 0 auto;
+    margin-top:5%;
     text-align: center;
     font-size: 2rem;
     font-weight: bold;
     color: black;
+    font-family: monospace;
 }
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: orange }
+  }
 .intro-desc{
     text-align: center;
     margin: 3%;
@@ -41,6 +59,7 @@
     overflow: hidden;
 }
 .intro-title-wrapper{
+    
   height: 100%;
   animation: move 10s ease-in-out infinite alternate;
 }
@@ -105,13 +124,13 @@ a button{
         font-size: 1rem;
     }
     .intro-title{
-        height: 20px;
+        height: 25px;
     }
     .intro-title-wrapper{
       height: 100%;
     }
     .intro-title-item{
-     height: 20px;
+     height: 25px;
       font-size: 20px;
     }
     @keyframes move{
@@ -125,7 +144,9 @@ a button{
             transform: translateY(-75px );
         }
         100%{
-            transform: translateY(-100px );
+            transform: translateY(-75px );
         }
     }
 }
+
+

@@ -9,6 +9,8 @@
     width: 65%;
 }
 .t-title{
+    display: flex;
+    justify-content: center;
     font-size: 50px;
     font-weight: 600;
     text-align: center;
@@ -35,4 +37,13 @@
         padding: 10px;        
     }
 
+  }
+.blink_me {
+    animation: blinker 0.5s linear infinite;
+  }
+  
+@keyframes blinker {
+    50% {
+      opacity: 0;
+    }
   }

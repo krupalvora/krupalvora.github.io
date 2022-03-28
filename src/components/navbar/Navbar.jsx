@@ -1,4 +1,5 @@
 import "./navbar.css"
+
 const Navbar = () => {
     const myFunction=()=> {
         var x = document.getElementById("myTopnav");
@@ -14,7 +15,7 @@ const Navbar = () => {
             <a href="#technologies">Tech Stack</a>
             <a href="#projects">Projects</a>
             <a href="#contact">Contact</a>
-            
+            <a href='/Krupal_Vora_Resume.pdf'>Resume</a>
             <a href="javascript:void(0);" className="icon" onClick={myFunction}>
                 <i class="fa fa-bars"></i>
             </a>
