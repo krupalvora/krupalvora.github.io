@@ -15,7 +15,7 @@ const Navbar = () => {
             <a href="#technologies"><i class="fa fa-list"></i>  Tech Stack</a>
             <a href="#projects"><i class="fa fa-globe"></i> Projects</a>
             <a href="#contact"><i class="fa fa-phone"></i>  Contact Me</a>
-            <a href='/Krupal_Vora_Resume.pdf'><i class="fa fa-file"></i> Resume</a>
+            <a href='../../krupal_vora_resume.pdf'><i class="fa fa-file"></i> Resume</a>
             <a href="javascript:void(0);" className="icon" onClick={myFunction}>
                 <i class="fa fa-bars"></i>
             </a>
