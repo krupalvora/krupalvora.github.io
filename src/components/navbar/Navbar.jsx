@@ -11,11 +11,11 @@ const Navbar = () => {
       } 
     return (
          <div className="topnav" id="myTopnav">
-            <a href="#home" className="active">Home</a>
-            <a href="#technologies">Tech Stack</a>
-            <a href="#projects">Projects</a>
-            <a href="#contact">Contact</a>
-            <a href='/Krupal_Vora_Resume.pdf'>Resume</a>
+            <a href="#home" ><i class="fa fa-home"></i> Home</a>
+            <a href="#technologies"><i class="fa fa-list"></i>  Tech Stack</a>
+            <a href="#projects"><i class="fa fa-globe"></i> Projects</a>
+            <a href="#contact"><i class="fa fa-phone"></i>  Contact Me</a>
+            <a href='/Krupal_Vora_Resume.pdf'><i class="fa fa-file"></i> Resume</a>
             <a href="javascript:void(0);" className="icon" onClick={myFunction}>
                 <i class="fa fa-bars"></i>
             </a>
