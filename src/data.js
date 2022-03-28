@@ -15,7 +15,7 @@ export const projects = [
     {
         id: 3,
         img: require("./img/todo.gif").default,
-        link: "https://github.com/krupalvora/BE-DashBoard/tree/master",
+        link: "https://krupalvora.github.io/Todo-list/",
         name:"ToDo List"
     },
     {
@@ -26,8 +26,20 @@ export const projects = [
     },
     {
         id: 5,
-        img: require("./img/todo.gif").default,
+        img: require("./img/emi.gif").default,
         link: "https://github.com/krupalvora/Bill-Book",
         name:"Advance Emi calculator"
+    },
+    {
+        id: 6,
+        img: require("./img/sslock.gif").default,
+        link: "http://sslock.herokuapp.com/",
+        name:"Smart & Secure Lock"
+    },
+    {
+        id: 6,
+        img: require("./img/pms.gif").default,
+        link: "https://github.com/krupalvora/pms#readme",
+        name:"Patient Managment System"
     }
 ];

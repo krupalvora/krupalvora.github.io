@@ -11,7 +11,7 @@ const Navbar = () => {
       } 
     return (
          <div className="topnav" id="myTopnav">
-            <a href="#home" ><i class="fa fa-home"></i> Home</a>
+            <a href="/" ><i class="fa fa-home"></i> Home</a>
             <a href="#technologies"><i class="fa fa-list"></i>  Tech Stack</a>
             <a href="#projects"><i class="fa fa-globe"></i> Projects</a>
             <a href="#contact"><i class="fa fa-phone"></i>  Contact Me</a>
