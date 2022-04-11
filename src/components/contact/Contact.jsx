@@ -62,9 +62,9 @@ import React, { useState } from "react";
                     </p>
 
                     <form className="c-form" ref={formRef} onSubmit={handlesubmit}>
-                        <input className="c-input" type="text" placeholder="Name" name="user_name" />
-                        <input className="c-input" type="text" placeholder="Email" name="user_email" />
-                        <input  className="c-input"type="text" placeholder="Subject" name="user_subject" />
+                        <input className="c-input" type="text" placeholder="Name" name="user_name" required/>
+                        <input className="c-input" type="email" placeholder="Email" name="user_email" required/>
+                        <input  className="c-input"type="text" placeholder="Subject" name="user_subject" required/>
                         <textarea className="c-textarea" name="message"  placeholder ="Message" rows="5"></textarea>
                         <button className="c-button">Submit</button>
                         {done && "Thank you ... message sent successfully"}
@@ -75,5 +75,4 @@ import React, { useState } from "react";
         </div>
     )
 }
-
 export default Contact
