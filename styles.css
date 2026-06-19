@@ -173,8 +173,8 @@ p, li { text-wrap: pretty; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 2rem; }
 
 .hero-stats {
-  display: grid; grid-template-columns: repeat(4, max-content); justify-content: space-between;
-  gap: clamp(0.75rem, 2vw, 1.5rem); align-items: start;
+  display: grid; grid-template-columns: repeat(3, max-content); justify-content: start;
+  gap: clamp(2rem, 5vw, 3.5rem); align-items: start;
   margin: 2.5rem 0 0; padding-top: 2rem; border-top: 1px solid var(--border);
 }
 .hero-stats div { margin: 0; }

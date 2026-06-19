@@ -22,7 +22,7 @@ need to touch the layout or styles.
 | `favicon.svg` | "KV" monogram favicon. |
 | `llms.txt` | Plain-text profile mirror for AI agents / LLMs. |
 | `robots.txt`, `sitemap.xml` | SEO crawl directives. |
-| `assets/` | Headshot (`kv_headshot.jpg`), OG image (`kv_og.jpg`), résumé PDF, brand logos. |
+| `assets/` | Headshot (`kv_headshot.jpg`), OG image (`kv_og.jpg`), resume PDF, brand logos. |
 
 ## SEO & AI-agent ("MCP") readiness
 

@@ -20,7 +20,7 @@ content model is available as JSON at /content.json.
 - LinkedIn: https://www.linkedin.com/in/krupalvora
 - GitHub: https://github.com/krupalvora
 - Medium: https://medium.com/@krupalvora
-- Résumé (PDF): https://krupalvora.github.io/assets/krupal_vora_resume.pdf
+- Resume (PDF): https://krupalvora.github.io/assets/krupal_vora_resume.pdf
 
 ## Services
 

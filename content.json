@@ -40,10 +40,9 @@
     "subtitle": "I'm **Krupal Vora**, a senior software engineer specializing in **ERPNext** and **AWS**. I architect and operate a cloud-native ERP serving **450+ users** across finance, supply chain, and warehouse operations.",
     "statusPill": "Open to consulting & full-time roles",
     "primaryCta": { "label": "Get in touch", "href": "#contact" },
-    "secondaryCta": { "label": "Download résumé", "href": "assets/krupal_vora_resume.pdf", "external": true },
+    "secondaryCta": { "label": "Download resume", "href": "assets/krupal_vora_resume.pdf", "external": true },
     "stats": [
       { "value": "450+", "label": "ERP users served" },
-      { "value": "~₹20L", "label": "losses prevented" },
       { "value": "8.7×", "label": "faster ERPNext core" },
       { "value": "4+ yrs", "label": "in production" }
     ]
@@ -213,13 +212,13 @@
   "contact": {
     "eyebrow": "06 · say hello",
     "title": "Let's talk",
-    "subtitle": "Open to consulting engagements and full-time roles in ERP and cloud architecture. The fastest way to reach me is email - or grab my résumé below.",
+    "subtitle": "Open to consulting engagements and full-time roles in ERP and cloud architecture. The fastest way to reach me is email - or grab my resume below.",
     "email": "krupalvora789@gmail.com",
     "phone": "+91 81044 09285",
     "phoneHref": "+918104409285",
     "location": "Mumbai, India",
     "primaryCta": { "label": "Email me", "href": "mailto:krupalvora789@gmail.com" },
-    "secondaryCta": { "label": "Download résumé", "href": "assets/krupal_vora_resume.pdf", "external": true },
+    "secondaryCta": { "label": "Download resume", "href": "assets/krupal_vora_resume.pdf", "external": true },
     "links": [
       { "label": "LinkedIn", "href": "https://www.linkedin.com/in/krupalvora", "external": true },
       { "label": "GitHub", "href": "https://github.com/krupalvora", "external": true },
