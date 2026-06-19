@@ -1,0 +1,81 @@
+# Krupal Vora
+
+> Senior Software Engineer specializing in ERP & Cloud Architecture. Krupal builds
+> ERP systems that scale with the business and stay audit-ready. He leads the ERP
+> function at SolarSquare, operating a horizontally scaled, cloud-native ERPNext
+> platform on AWS for 450+ users across finance, supply chain, and warehouse operations.
+
+This file is a plain-text, machine-readable profile for LLMs and AI agents.
+Structured data (schema.org) is also embedded in the site's HTML, and the full
+content model is available as JSON at /content.json.
+
+## Profile
+
+- Name: Krupal Vinod Vora
+- Title: Senior Software Engineer - ERP & Cloud Architecture (SDE-2)
+- Location: Mumbai, India
+- Experience: 4+ years building production-grade ERP and data systems on AWS
+- Email: krupalvora789@gmail.com
+- Website: https://krupalvora.github.io
+- LinkedIn: https://www.linkedin.com/in/krupalvora
+- GitHub: https://github.com/krupalvora
+- Medium: https://medium.com/@krupalvora
+- Résumé (PDF): https://krupalvora.github.io/assets/krupal_vora_resume.pdf
+
+## Services
+
+- ERP Implementation & Scaling - Architect, migrate, and scale ERPNext/Frappe on AWS,
+  from a single-server install to a horizontally scaled, cloud-native platform.
+- Architecture & Performance Audits - Profile and redesign slow or fragile systems with
+  measurable before/after results (e.g. an 8.7x speedup on ERPNext's core stock ledger).
+- ITGC & Audit / IPO Readiness - RBAC with activity logging, maker-checker workflows
+  enforcing segregation of duties, and audit-evidence frameworks mapping to SOX/ITGC.
+
+## Selected work
+
+- Scaling SolarSquare's ERP to 450+ users - Re-architected ERPNext into a horizontally
+  scaled AWS platform: auto-scaling web tier (Gunicorn/Nginx/SocketIO), dedicated worker
+  fleet, ElastiCache Redis, RDS MariaDB, S3, Lambda, CloudWatch, IAM. Serves 450+ users
+  across B2B and B2C operations.
+- Preventing ~Rs 20 Lakh in logistics losses - Built inventory-tracking workflows and data
+  pipelines that surfaced mid-mile logistics discrepancies, preventing roughly Rs 20 Lakh
+  in losses and improving warehouse efficiency.
+- Audit & IPO readiness (ITGC) - Custom RBAC, maker-checker approval workflows on sensitive
+  financial transactions, and an audit framework capturing access/change/approval evidence
+  into structured reports addressing SOX and ITGC control domains.
+- ERPNext core contribution, PR #51644 - Refactored get_stock_ledgers_for_serial_nos onto
+  ERPNext v15's Serial and Batch Bundle model. Cut query time ~583s -> ~67s (~8.7x faster)
+  and database queries ~104K -> ~14.5K (~86% fewer). https://github.com/frappe/erpnext/pull/51644
+- Event-management ERP for Amba Tech (NGO) - End-to-end ERP with an Angular web app, mobile
+  app, and Metabase dashboards, including a QR-based attendance system. Pro bono.
+
+## Experience
+
+- SolarSquare Energy - Software Development Engineer II (SDE-2), Oct 2024 – Present.
+  Leads the ERP POD; architects and operates the cloud-native ERPNext platform on AWS.
+- DataCurate Technologies - Associate Consultant, Jun 2022 – Oct 2024. For HDFC ERGO, built
+  a supervised ML model targeting WhatsApp campaigns (cut messaging costs ~70%). For Star
+  Health, built ETL workflows, a Detail Data Store, production reporting, and fraud-detection
+  rule engines using SQL and SAS.
+- University of Mumbai - B.E. Information Technology, 2018 – 2022.
+
+## Skills
+
+- Languages: Python, Go, SQL, JavaScript, HTML/CSS
+- Frameworks & platforms: Frappe, ERPNext, FastAPI, Flask
+- Cloud & infrastructure: AWS (EC2, Auto Scaling Groups, RDS MariaDB, ElastiCache Redis, S3,
+  Lambda, CloudWatch, IAM), Nginx, Docker, Linux/Bash
+- Data & analytics: ETL & data pipelines, Machine Learning, SAS, reporting & dashboards
+- DevOps & tooling: Git/GitHub, CI/CD, Kibana, Supervisor
+- Other: REST APIs, system design, GenAI/LLM integration, DSA
+
+## Credentials
+
+- Microsoft Certified: Azure Fundamentals (AZ-900), 2023
+- Winner - Mumbai Hackathon 2022, hosted by Zerodha & Frappe
+- ERPNext core contributor (frappe/erpnext PR #51644)
+
+## Contact
+
+Open to consulting engagements and full-time roles in ERP and cloud architecture.
+Email krupalvora789@gmail.com is the fastest way to reach Krupal.

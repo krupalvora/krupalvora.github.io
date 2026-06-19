@@ -1,0 +1,10 @@
+{
+  "default_branch": "portfolio-refresh",
+  "branches": {
+    "portfolio-refresh": {
+      "db_file": "tokensave.db",
+      "created_at": "1781896732",
+      "last_synced_at": "1781896732"
+    }
+  }
+}

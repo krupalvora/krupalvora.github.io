@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://krupalvora.github.io/sitemap.xml

@@ -1,247 +1,233 @@
 {
   "site": {
-    "title": "Krupal Vora | Senior Software Engineer",
-    "metaDescription": "Portfolio of Krupal Vora – Senior Software Engineer and product-focused engineer with 4+ years of experience building scalable systems, data platforms, and ERP solutions.",
-    "logoText": "K.VORA"
+    "name": "Krupal Vora",
+    "title": "Krupal Vora - Senior ERP & Cloud Architect | ERPNext on AWS",
+    "metaDescription": "Krupal Vora is a senior software engineer specializing in ERPNext and AWS. He architects and operates a cloud-native ERP serving 450+ users across finance, supply chain, and warehouse operations - built to scale and stay audit-ready.",
+    "url": "https://krupalvora.github.io",
+    "logoText": "Krupal Vora",
+    "ogImage": "assets/kv_og.jpg",
+    "keywords": "ERPNext consultant, Frappe consultant, ERP architect, AWS cloud architect, ERP scaling, ITGC, IPO readiness, ERP implementation, Krupal Vora"
   },
+  "person": {
+    "name": "Krupal Vinod Vora",
+    "jobTitle": "Senior Software Engineer - ERP & Cloud Architecture",
+    "worksFor": "SolarSquare Energy",
+    "location": "Mumbai, India",
+    "email": "krupalvora789@gmail.com",
+    "sameAs": [
+      "https://www.linkedin.com/in/krupalvora",
+      "https://github.com/krupalvora",
+      "https://medium.com/@krupalvora"
+    ],
+    "knowsAbout": [
+      "ERPNext", "Frappe Framework", "ERP Architecture", "AWS", "Distributed Systems",
+      "Performance Optimization", "ITGC", "IPO Readiness", "Data Pipelines", "DevOps"
+    ]
+  },
+  "nav": [
+    { "label": "Services", "href": "#services" },
+    { "label": "Work", "href": "#work" },
+    { "label": "About", "href": "#about" },
+    { "label": "Skills", "href": "#skills" },
+    { "label": "Writing", "href": "#writing" },
+    { "label": "Contact", "href": "#contact" }
+  ],
   "hero": {
-    "photo": "assets/kv_linkedin.jpg",
+    "photo": "assets/kv_headshot.jpg",
     "photoAlt": "Krupal Vora",
-    "kicker": "Senior Software Engineer · Product & Data",
-    "headline": "Building resilient systems that ship value, not just code.",
-    "subtitle": "I'm **Krupal Vora**, a software & product engineer with 4+ years of experience turning ideas into robust, data‑driven solutions — from ERP and distributed backends to ML‑powered growth systems.",
-    "meta": [
-      { "label": "Current", "value": "SDE‑2 @ Solar Square Energy" },
-      { "label": "Location", "value": "Mumbai, India" },
-      { "label": "Experience", "value": "4+ years" }
-    ],
-    "statusPill": "Driving Tech & Product Engineering at Solar Square",
-    "chips": ["Python", "ERPNext / Frappe", "SQL", "FastAPI", "AWS", "Gen AI"],
-    "primaryCta": "View selected work",
-    "primaryCtaHref": "#projects",
-    "secondaryCta": "Let's build something",
-    "secondaryCtaHref": "#contact",
-    "links": [
-      { "label": "Email", "href": "mailto:krupalvora789@gmail.com" },
-      { "label": "LinkedIn", "href": "https://www.linkedin.com/in/krupalvora", "external": true },
-      { "label": "GitHub", "href": "https://github.com/krupalvora", "external": true },
-      { "label": "Medium", "href": "https://medium.com/@krupalvora", "external": true },
-      { "label": "Resume", "href": "assets/krupal_vora_resume.pdf", "external": true }
+    "kicker": "Senior Software Engineer · ERP & Cloud Architecture",
+    "headline": "I build ERP systems that scale with the businesses.",
+    "subtitle": "I'm **Krupal Vora**, a senior software engineer specializing in **ERPNext** and **AWS**. I architect and operate a cloud-native ERP serving **450+ users** across finance, supply chain, and warehouse operations.",
+    "statusPill": "Open to consulting & full-time roles",
+    "primaryCta": { "label": "Get in touch", "href": "#contact" },
+    "secondaryCta": { "label": "Download résumé", "href": "assets/krupal_vora_resume.pdf", "external": true },
+    "stats": [
+      { "value": "450+", "label": "ERP users served" },
+      { "value": "~₹20L", "label": "losses prevented" },
+      { "value": "8.7×", "label": "faster ERPNext core" },
+      { "value": "4+ yrs", "label": "in production" }
     ]
   },
-  "about": {
-    "title": "About",
-    "paragraphs": [
-      "I design and build backend and data platforms that sit at the heart of products — orchestrating ERP, payments, logistics, and analytics so businesses can move faster with confidence.",
-      "My experience spans cloud‑native ERP transformation, ML‑driven growth experiments, fraud analytics, and event‑driven architectures. I enjoy working close to the business: turning ambiguous requirements into measurable impact, with a strong bias for shipping."
-    ],
-    "cards": [
+  "trustBar": {
+    "label": "Experience across",
+    "useLogos": false,
+    "items": [
+      { "name": "SolarSquare", "logo": "", "url": "https://www.solarsquare.com" },
+      { "name": "DataCurate", "logo": "", "url": "" },
+      { "name": "HDFC ERGO", "logo": "assets/logos/hdfcergo.png", "url": "https://www.hdfcergo.com" },
+      { "name": "Star Health", "logo": "", "url": "https://www.starhealth.in" }
+    ]
+  },
+  "services": {
+    "eyebrow": "01 · what I do",
+    "title": "How I help",
+    "subtitle": "I help businesses turn ERPNext into a reliable, scalable backbone - from architecture to audit readiness.",
+    "items": [
       {
-        "label": "I care about",
-        "items": [
-          "Robust, observable systems (logs, metrics, traces)",
-          "Developer velocity via CI/CD & tooling",
-          "Data‑informed product decisions"
+        "title": "ERP Implementation & Scaling",
+        "description": "Architect, migrate, and scale ERPNext/Frappe on AWS - from a single-server install to a horizontally scaled, cloud-native platform built for growth and uptime.",
+        "points": [
+          "Distributed architecture: auto-scaling web tier, dedicated workers, Redis, managed databases",
+          "Mission-critical integrations: banking & payment gateways, order management, automation",
+          "Built to handle hundreds of concurrent users across B2B and B2C operations"
         ]
       },
       {
-        "label": "Currently exploring",
-        "items": [
-          "LLM‑assisted developer workflows",
-          "Domain‑driven design in ERP contexts",
-          "Optimizing large‑scale inventory systems"
+        "title": "Architecture & Performance Audits",
+        "description": "Diagnose what's slow, fragile, or expensive - then redesign it. I find the bottlenecks and rebuild the hot paths for speed and reliability.",
+        "points": [
+          "Query, workflow, and infrastructure profiling with measurable before/after results",
+          "Proven impact: an 8.7× speedup on ERPNext's core stock-ledger engine",
+          "Observability built in - centralized logging, metrics, and alerting"
+        ]
+      },
+      {
+        "title": "ITGC & Audit / IPO Readiness",
+        "description": "Make your ERP defensible to auditors. I build the access, change, and approval controls that map to SOX and ITGC domains - the foundation of IPO readiness.",
+        "points": [
+          "Role-based access control (RBAC) with end-to-end activity logging",
+          "Maker-checker approval workflows enforcing segregation of duties",
+          "Audit framework capturing access, change, and approval evidence as reports"
         ]
       }
     ]
   },
-  "experience": {
-    "title": "Experience",
-    "subtitle": "A blend of backend engineering, data platforms, and product‑centric problem solving.",
+  "work": {
+    "eyebrow": "02 · case studies",
+    "title": "Selected work",
+    "subtitle": "Real systems, real outcomes - framed by the business impact they delivered.",
     "items": [
       {
-        "title": "Senior Software Engineer (SDE‑2)",
-        "company": "Solar Square Energy · ERP POD",
-        "meta": "Oct 2024 – Present · Mumbai, India",
-        "summary": "Leading the ERP POD and driving the evolution of a monolithic ERP into a distributed, cloud‑native platform on AWS, powering supply chain, finance, and warehouse operations across B2B and B2C.",
-        "points": [
-          "Architected and scaled ERP into a **distributed AWS‑native system** (including AWS Lambda), improving resilience, scalability, and performance for core business workflows.",
-          "Built and integrated **mission‑critical backend systems** including banking/payment APIs, AMC lifecycle automation, and an Order Management System (OMS) for end‑to‑end order flow.",
-          "Designed inventory tracking workflows and **data pipelines** that surfaced mid‑mile logistics leakages, helping prevent ~**₹10 Lakhs** in losses.",
-          "Implemented **DevOps & observability best practices** with Kibana‑backed logging and automated CI/CD using GitHub APIs and LLM‑powered code reviews."
-        ],
-        "tags": ["Python", "ERPNext / Frappe", "AWS", "Serverless", "Data Pipelines", "DevOps"]
+        "title": "Scaling SolarSquare's ERP to 450+ users",
+        "tag": "ERP Architecture · AWS",
+        "metric": "450+ users",
+        "metricLabel": "across finance, supply chain & warehouse",
+        "challenge": "A growing solar business needed its ERP to reliably support hundreds of concurrent users across finance, supply chain, and warehouse operations - without downtime as load scaled.",
+        "approach": "As the solo engineer leading the ERP function, I re-architected ERPNext into a horizontally scaled, cloud-native platform on AWS: an auto-scaling web tier (Gunicorn/Nginx/SocketIO), a dedicated worker fleet, ElastiCache Redis, RDS MariaDB, S3, and Lambda - with CloudWatch and IAM for operations and security.",
+        "outcome": "Enterprise-grade performance and elasticity for 450+ users across B2B and B2C, on infrastructure that scales with demand.",
+        "tech": ["ERPNext", "AWS", "Auto Scaling", "Redis", "RDS MariaDB", "Lambda"]
       },
       {
-        "title": "Associate Consultant",
-        "company": "DataCurate Technologies",
-        "meta": "Jun 2022 – Oct 2024",
-        "summary": "Worked across insurance and marketing analytics projects, combining data engineering, ML, and reporting to drive better customer acquisition and fraud detection.",
-        "points": [
-          "For **HDFC ERGO**, engineered a supervised ML model to target WhatsApp communications, achieving a **70% reduction in messaging costs** and higher lead conversion.",
-          "Partnered with marketing and engineering to build a **multi‑channel data pipeline** (email, SMS, WhatsApp), resulting in a **6% uplift** in lead conversion.",
-          "For **Star Health Insurance**, developed ETL workflows, DDS (Detail Data Store), reporting, and dashboards using SQL & SAS in production environments.",
-          "Contributed to **fraud detection** by combining data warehousing, algorithms, and API‑driven rule engines."
-        ],
-        "tags": ["Python", "SQL", "SAS", "ETL", "Machine Learning", "Marketing Tech"]
+        "title": "Preventing ~₹20 Lakh in logistics losses",
+        "tag": "Data Pipelines · Operations",
+        "metric": "~₹20L",
+        "metricLabel": "mid-mile losses prevented",
+        "challenge": "Inventory was leaking value in mid-mile logistics, with no clear visibility into where or why losses occurred.",
+        "approach": "I built inventory-tracking workflows and data pipelines that surfaced discrepancies as they happened, giving operations the transparency to act before losses compounded.",
+        "outcome": "Identified and prevented roughly ₹20 Lakh in mid-mile logistics losses, with measurably better warehouse efficiency and operational transparency.",
+        "tech": ["Python", "ERPNext", "Data Pipelines", "ETL"]
       },
       {
-        "title": "B.E. Information Technology",
-        "company": "Mumbai University",
-        "meta": "2018 – 2022",
-        "summary": "Built a foundation in computer science and software engineering while contributing to community and NGO projects.",
-        "points": [],
-        "tags": []
-      }
-    ]
-  },
-  "skills": {
-    "title": "Skills & Stack",
-    "subtitle": "Tools I use to move products from idea to impact.",
-    "categories": [
-      {
-        "title": "Core engineering",
-        "items": ["Python", "JavaScript", "DSA", "System Design", "Git / GitHub"]
+        "title": "Audit & IPO readiness (ITGC)",
+        "tag": "Governance · Compliance",
+        "metric": "SOX / ITGC",
+        "metricLabel": "control domains addressed",
+        "challenge": "Preparing for IPO scrutiny meant the ERP had to demonstrate strong IT General Controls over access, change, and operations.",
+        "approach": "I built a custom RBAC framework with end-to-end activity logging, implemented maker-checker approval workflows enforcing segregation of duties on sensitive financial transactions, and developed an audit framework that captures access, change, and approval evidence into structured reports.",
+        "outcome": "An ERP posture that directly addresses the access, change, and operations control domains expected in SOX and ITGC audits.",
+        "tech": ["RBAC", "Audit Logging", "Workflow", "ERPNext"]
       },
       {
-        "title": "Backend & platforms",
-        "items": ["Frappe / ERPNext", "Flask", "FastAPI", "REST APIs", "Serverless (AWS Lambda)"]
-      },
-      {
-        "title": "Data & analytics",
-        "items": ["SQL", "ETL & pipelines", "SAS", "Machine Learning", "Reporting & dashboards"]
-      },
-      {
-        "title": "Infra & dev experience",
-        "items": ["AWS", "Docker", "CI/CD", "Logging & observability", "Gen AI / LLM tooling"]
-      }
-    ]
-  },
-  "projects": {
-    "title": "Selected Projects",
-    "subtitle": "A snapshot of what I've built across web apps, tools, and experiments.",
-    "filters": [
-      { "id": "all", "label": "All" },
-      { "id": "product", "label": "Product & UX" },
-      { "id": "backend", "label": "Backend / Data" },
-      { "id": "tools", "label": "Tools & Utilities" }
-    ],
-    "items": [
-      {
-        "title": "ERP for Event Management (Amba Tech)",
-        "badge": "Contribution(NGO)",
-        "tags": "backend product",
-        "description": "Designed and developed an ERP system integrated with Angular web app, mobile app, and Metabase dashboards for an NGO's event management operations.",
-        "bullets": [
-          "QR‑based attendance and check‑ins for precise tracking.",
-          "Custom scripts and query reports for rich analytics and reporting.",
-          "Frappe API‑based integrations for seamless data flow."
-        ],
-        "techTags": ["Frappe", "ERP", "Angular", "Metabase"],
-        "link": null,
-        "linkLabel": null
-      },
-      {
-        "title": "URL Shortener",
-        "badge": "Deployed",
-        "tags": "product tools",
-        "description": "A minimal URL shortener built to explore backend design, analytics, and deployment.",
-        "bullets": [
-          "Clean, focused UX for quick link creation.",
-          "Short links designed to be readable and shareable.",
-          "Analytics and tracking for link usage.",
-          "RBAC for link management."
-        ],
-        "techTags": [
-          "Python", "FastAPI", "PostgreSQL", "Docker", "CI/CD", "AWS"
-        ],
-        "link": null,
-        "linkLabel": "Live demo"
-      },
-      {
-        "title": "BillBook",
-        "badge": null,
-        "tags": "backend tools",
-        "description": "A small suite of finance utilities including billing workflows and EMI calculations to simplify day‑to‑day operations.",
-        "bullets": [
-          "A small suite of finance utilities including billing workflows to simplify day‑to‑day operations.",
-          "Bill generation and payment tracking for businesses.",
-          "User-friendly interface for easy navigation and data entry.",
-          "Responsive design for optimal user experience on all devices."
-        ],
-        "techTags": ["Java", "Android", "MySQL", "REST APIs", "Docker", "CI/CD"],
-        "link": "https://github.com/krupalvora/Bill-Book",
-        "linkLabel": "Source"
-      },
-      {
-        "title": "Smart & Secure Lock",
-        "badge": null,
-        "tags": "product backend",
-        "description": "A smart lock concept with secure authentication flows and a web interface for managing access.",
-        "bullets": [],
-        "techTags": [],
-        "link": "http://sslock.herokuapp.com/",
-        "linkLabel": "Live demo"
-      },
-      {
-        "title": "Patient Management System",
-        "badge": null,
-        "tags": "backend",
-        "description": "A patient management system focusing on record management, appointments, and reporting.",
-        "bullets": [],
-        "techTags": [],
-        "link": "https://github.com/krupalvora/pms#readme",
-        "linkLabel": "Source"
-      }
-    ]
-  },
-  "contributions": {
-    "title": "Open Source & Community",
-    "subtitle": "I contribute back to the tools and ecosystems I rely on.",
-    "items": [
-      {
-        "title": "ERPNext Stock Ledger Optimization",
-        "badge": "Core contribution",
-        "description": "Optimized ERPNext's core stock ledger serial and batch resolution, significantly improving performance on large inventories.",
-        "bullets": [
-          "~7× faster queries over millions of ledger entries.",
-          "Preserved compatibility with legacy purchase & landed cost workflows."
-        ],
+        "title": "ERPNext core contribution - PR #51644",
+        "tag": "Open Source · Performance",
+        "metric": "8.7× faster",
+        "metricLabel": "on serial-tracked datasets",
+        "challenge": "ERPNext's stock-ledger serial-number resolution was slow on large, serial-tracked inventories - affecting Delivery Note, Purchase Receipt, Stock Entry, and Stock Reconciliation across the global community.",
+        "approach": "I refactored get_stock_ledgers_for_serial_nos onto ERPNext v15's Serial and Batch Bundle data model, replacing application-layer filtering with bundle-based SQL joins while preserving backward compatibility with legacy serial data.",
+        "outcome": "Query execution dropped from ~583s to ~67s (~8.7× faster) and database queries from ~104K to ~14.5K (~86% fewer) - merged into the world's leading open-source ERP (34K+ GitHub stars).",
+        "tech": ["Frappe", "ERPNext", "SQL", "Performance"],
         "link": "https://github.com/frappe/erpnext/pull/51644",
         "linkLabel": "View pull request"
       },
       {
-        "title": "Amba Tech (NGO)",
-        "badge": "Long‑term engagement",
-        "description": "Built an ERP‑like system with integrated web, mobile, and analytics stack for an NGO focused on event management.",
-        "bullets": [
-          "QR‑based attendance for events and volunteers.",
-          "Dashboards for resource utilization and planning.",
-          "Custom API integrations with Frappe backend."
-        ],
-        "link": null,
-        "linkLabel": null
+        "title": "Event-management ERP for Amba Tech (NGO)",
+        "tag": "End-to-end ERP · Pro bono",
+        "metric": "Web + Mobile",
+        "metricLabel": "+ analytics dashboards",
+        "challenge": "An NGO needed an end-to-end system to run events - registrations, attendance, and decision-making - without enterprise budgets.",
+        "approach": "I designed and built a full ERP with an Angular web app, a mobile app, and Metabase dashboards, including a QR-based attendance system for precise tracking and Frappe API integrations for clean data flow.",
+        "outcome": "Data-driven event operations for the organizing team, with accurate attendance tracking and dashboards that informed planning.",
+        "tech": ["Frappe", "Angular", "Metabase", "REST APIs"]
       }
     ]
   },
+  "about": {
+    "eyebrow": "03 · background",
+    "title": "About",
+    "paragraphs": [
+      "I'm a senior software engineer with 4+ years of experience designing, building, and operating production-grade ERP and data systems on AWS. Today I lead the ERP function at **SolarSquare**, single-handedly running a horizontally scaled ERPNext platform for 450+ users across finance, supply chain, and warehouse operations.",
+      "My background spans distributed systems, backend integrations, observability, and IT General Controls (ITGC) for audit and IPO readiness. I like working close to the business - turning ambiguous operational problems into reliable systems with measurable impact."
+    ],
+    "highlights": [
+      { "label": "Currently", "value": "Lead the ERP POD at SolarSquare (SDE-2)" },
+      { "label": "Specialty", "value": "ERPNext, AWS scaling, ITGC & audit readiness" },
+      { "label": "Based in", "value": "Mumbai, India" }
+    ],
+    "experience": [
+      {
+        "role": "Software Development Engineer II (SDE-2)",
+        "org": "SolarSquare Energy",
+        "period": "Oct 2024 – Present",
+        "summary": "Leading the ERP POD - architecting and operating a horizontally scaled, cloud-native ERPNext platform on AWS for 450+ users, with mission-critical integrations, observability, and ITGC controls for IPO readiness."
+      },
+      {
+        "role": "Associate Consultant",
+        "org": "DataCurate Technologies",
+        "period": "Jun 2022 – Oct 2024",
+        "summary": "For HDFC ERGO, built a supervised ML model targeting WhatsApp campaigns that cut messaging costs ~70% and lifted conversion. For Star Health, built ETL workflows, a Detail Data Store, production reporting, and fraud-detection rule engines using SQL and SAS."
+      },
+      {
+        "role": "B.E. Information Technology",
+        "org": "University of Mumbai",
+        "period": "2018 – 2022",
+        "summary": "Foundation in computer science and software engineering."
+      }
+    ],
+    "credentials": [
+      "Microsoft Certified: Azure Fundamentals (AZ-900) - 2023",
+      "Winner - Mumbai Hackathon 2022, hosted by Zerodha & Frappe",
+      "ERPNext core contributor (frappe/erpnext PR #51644)"
+    ]
+  },
+  "skills": {
+    "eyebrow": "04 · stack",
+    "title": "Skills & stack",
+    "subtitle": "The tools I use to take systems from design to production.",
+    "categories": [
+      { "title": "Languages", "items": ["Python", "Go", "SQL", "JavaScript", "HTML / CSS"] },
+      { "title": "Frameworks & platforms", "items": ["Frappe", "ERPNext", "FastAPI", "Flask"] },
+      { "title": "Cloud & infrastructure", "items": ["AWS (EC2, ASG, RDS, ElastiCache, S3, Lambda)", "Nginx", "Docker", "Linux / Bash", "CloudWatch & IAM"] },
+      { "title": "Data & analytics", "items": ["ETL & data pipelines", "Machine Learning", "SAS", "Reporting & dashboards"] },
+      { "title": "DevOps & tooling", "items": ["Git / GitHub", "CI/CD", "Kibana", "Supervisor"] },
+      { "title": "Other", "items": ["REST APIs", "System Design", "GenAI / LLM integration", "DSA"] }
+    ]
+  },
+  "writing": {
+    "eyebrow": "05 · notes",
+    "title": "Writing",
+    "subtitle": "Notes on ERP, scaling, and engineering - published on Medium.",
+    "profileUrl": "https://medium.com/@krupalvora",
+    "profileLabel": "Read on Medium",
+    "items": []
+  },
   "contact": {
+    "eyebrow": "06 · say hello",
     "title": "Let's talk",
-    "subtitle": "Open to roles where I can own systems end‑to‑end — from design and implementation to metrics, observability, and iteration.",
+    "subtitle": "Open to consulting engagements and full-time roles in ERP and cloud architecture. The fastest way to reach me is email - or grab my résumé below.",
     "email": "krupalvora789@gmail.com",
-    "mailtoEmail": "krupalvora789@gmail.com",
     "phone": "+91 81044 09285",
     "phoneHref": "+918104409285",
     "location": "Mumbai, India",
+    "primaryCta": { "label": "Email me", "href": "mailto:krupalvora789@gmail.com" },
+    "secondaryCta": { "label": "Download résumé", "href": "assets/krupal_vora_resume.pdf", "external": true },
     "links": [
       { "label": "LinkedIn", "href": "https://www.linkedin.com/in/krupalvora", "external": true },
-      { "label": "GitHub", "href": "https://github.com/krupalvora", "external": true }
-    ],
-    "formTitle": "Quick intro",
-    "formCaption": "Fill in your details and click the button to open your mail app with a draft message to me.",
-    "formSubmitLabel": "Open mail with draft",
-    "introDefaultMessage": "I'd love to connect about a potential opportunity that aligns with your background in ERP, data platforms, and product-focused engineering."
+      { "label": "GitHub", "href": "https://github.com/krupalvora", "external": true },
+      { "label": "Medium", "href": "https://medium.com/@krupalvora", "external": true }
+    ]
   },
   "footer": {
-    "copy": "Krupal Vora. https://krupalvora.github.io",
-    "secondary": "Deployed on GitHub Pages."
+    "copy": "Krupal Vora",
+    "secondary": ""
   }
 }
