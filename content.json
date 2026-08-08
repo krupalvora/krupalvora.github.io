@@ -33,8 +33,8 @@
     { "label": "Contact", "href": "#contact" }
   ],
   "hero": {
-    "photo": "assets/kv_headshot.jpg",
-    "photoAlt": "Krupal Vora",
+    "photo": "assets/dog_headshot.svg",
+    "photoAlt": "Dog profile photo",
     "kicker": "Senior Software Engineer · ERP & Cloud Architecture",
     "headline": "I build ERP systems that scale with the businesses.",
     "subtitle": "I'm **Krupal Vora**, a senior software engineer specializing in **ERPNext** and **AWS**. I architect and operate a cloud-native ERP serving **450+ users** across finance, supply chain, and warehouse operations.",

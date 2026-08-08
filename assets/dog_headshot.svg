@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="furGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B7355;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#A0845E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6B553A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="earGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B553A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A3A2A;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="noseGradient" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" style="stop-color:#3A2A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A1A1A;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="eyeGradient" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#2D1B10;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A0D05;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="180" fill="#F5F0E8"/>
+  
+  <!-- Ears -->
+  <ellipse cx="85" cy="95" rx="45" ry="65" fill="url(#earGradient)" transform="rotate(-25 85 95)"/>
+  <ellipse cx="85" cy="95" rx="30" ry="45" fill="#8B7355" transform="rotate(-25 85 95)"/>
+  <ellipse cx="315" cy="95" rx="45" ry="65" fill="url(#earGradient)" transform="rotate(25 315 95)"/>
+  <ellipse cx="315" cy="95" rx="30" ry="45" fill="#8B7355" transform="rotate(25 315 95)"/>
+  
+  <!-- Head -->
+  <ellipse cx="200" cy="200" rx="140" ry="150" fill="url(#furGradient)"/>
+  
+  <!-- Face lighter area -->
+  <ellipse cx="200" cy="220" rx="90" ry="100" fill="#D4B896" opacity="0.6"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="150" cy="175" rx="22" ry="28" fill="url(#eyeGradient)"/>
+  <ellipse cx="150" cy="175" rx="10" ry="14" fill="#0A0502"/>
+  <ellipse cx="145" cy="168" rx="4" ry="4" fill="#FFF" opacity="0.8"/>
+  
+  <ellipse cx="250" cy="175" rx="22" ry="28" fill="url(#eyeGradient)"/>
+  <ellipse cx="250" cy="175" rx="10" ry="14" fill="#0A0502"/>
+  <ellipse cx="245" cy="168" rx="4" ry="4" fill="#FFF" opacity="0.8"/>
+  
+  <!-- Eyebrows -->
+  <path d="M125 155 Q150 145 175 155" stroke="#4A3A2A" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M225 155 Q250 145 275 155" stroke="#4A3A2A" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- Nose -->
+  <ellipse cx="200" cy="230" rx="20" ry="16" fill="url(#noseGradient)"/>
+  <ellipse cx="193" cy="226" rx="4" ry="3" fill="#2A1A0A"/>
+  <ellipse cx="207" cy="226" rx="4" ry="3" fill="#2A1A0A"/>
+  
+  <!-- Mouth -->
+  <path d="M200 246 Q200 260 180 265" stroke="#3A2A1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M200 246 Q200 260 220 265" stroke="#3A2A1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M180 265 Q200 255 220 265" stroke="#3A2A1A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Tongue -->
+  <ellipse cx="200" cy="275" rx="12" ry="10" fill="#E87A7A"/>
+  <path d="M195 275 Q200 278 205 275" stroke="#C85A5A" stroke-width="1.5" fill="none"/>
+  
+  <!-- Whiskers -->
+  <g stroke="#4A3A2A" stroke-width="1.5" fill="none" opacity="0.6">
+    <line x1="165" y1="235" x2="110" y2="225"/>
+    <line x1="165" y1="242" x2="105" y2="240"/>
+    <line x1="165" y1="249" x2="110" y2="255"/>
+    <line x1="235" y1="235" x2="290" y2="225"/>
+    <line x1="235" y1="242" x2="295" y2="240"/>
+    <line x1="235" y1="249" x2="290" y2="255"/>
+  </g>
+  
+  <!-- Fur texture on top of head -->
+  <g fill="#6B553A" opacity="0.4">
+    <path d="M170 70 Q165 50 180 60"/>
+    <path d="M195 60 Q190 40 210 50"/>
+    <path d="M225 65 Q220 45 235 55"/>
+  </g>
+  
+  <!-- Collar -->
+  <path d="M100 330 Q200 290 300 330" stroke="#C0392B" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="200" cy="310" r="12" fill="#F39C12"/>
+  <circle cx="200" cy="310" r="7" fill="#D4AC0D"/>
+</svg>
