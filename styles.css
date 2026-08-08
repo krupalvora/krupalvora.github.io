@@ -5,7 +5,7 @@
 
 :root {
   /* Palette (all text/accent combos AA-checked on white) */
-  --bg: #ffffff;
+  --bg: #ff0000;
   --bg-alt: #f8fafc;          /* slate-50 */
   --surface: #ffffff;
   --border: #e2e8f0;          /* slate-200 */
