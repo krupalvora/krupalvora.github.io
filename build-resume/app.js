@@ -697,6 +697,14 @@
   }
   function stripBullet(s) { return s.replace(BULLET_RE, "").trim(); }
   function isContinuation(s) { return /^[a-z(,]/.test(s) || /^(and|or|with|using|the)\b/i.test(s); }
+  /* Wrapped body text vs. a genuinely new title. A continuation either starts
+     mid-sentence, or follows a line that ran to the margin without finishing a
+     sentence - which is what a wrap looks like once the layout is gone. */
+  function isWrapped(prevRaw, line) {
+    if (isContinuation(line)) return true;
+    if (!prevRaw) return false;
+    return prevRaw.length >= 70 && !/[.!?:;]$/.test(prevRaw);
+  }
   /* PDF/text line wraps: "cloud-" + "native" must rejoin without a space. */
   function joinCont(prev, line) {
     return /[-\u2013\u2014/]$/.test(prev) ? prev + line : prev + " " + line;
@@ -713,8 +721,10 @@
      "Title  <dates>" / "Org | Location" / bullets, with optional
      "Client: X" sub-groups. Wrapped lines are folded into the line above. */
   function parseEntries(ls) {
-    var entries = [];
-    ls.forEach(function (line) {
+    var entries = [], prevRaw = "";
+    ls.forEach(function (rawLine) {
+      var line = rawLine, prev = prevRaw;
+      prevRaw = rawLine;
       var last = entries[entries.length - 1];
       var m = line.match(RANGE_RE);
 
@@ -737,7 +747,7 @@
         return;
       }
       var open = last.groups.length ? last.groups[last.groups.length - 1].bullets : last.bullets;
-      if (open.length && isContinuation(line)) {
+      if (open.length && isWrapped(prev, line)) {
         open[open.length - 1] = joinCont(open[open.length - 1], line);
       } else if (!last.org) {
         var clean = line.replace(/\*\*/g, "");
@@ -848,21 +858,27 @@
       }
 
       if (sec.key === "awards") {
+        var prevAward = "";
         ls.forEach(function (line) {
+          var prev = prevAward;
+          prevAward = line;
           if (BULLET_RE.test(line) || !d.awards.length) d.awards.push(stripBullet(line));
-          else if (isContinuation(line)) d.awards[d.awards.length - 1] = joinCont(d.awards[d.awards.length - 1], line);
+          else if (isWrapped(prev, line)) d.awards[d.awards.length - 1] = joinCont(d.awards[d.awards.length - 1], line);
           else d.awards.push(line);
         });
         return;
       }
 
       if (sec.key === "projects") {
+        var prevProj = "";
         ls.forEach(function (line) {
+          var prev = prevProj;
+          prevProj = line;
           var last = d.projects[d.projects.length - 1];
           if (BULLET_RE.test(line)) {
             if (!last) { last = BLANK.project(); last.bullets = []; d.projects.push(last); }
             last.bullets.push(stripBullet(line));
-          } else if (last && last.bullets.length && isContinuation(line)) {
+          } else if (last && last.bullets.length && isWrapped(prev, line)) {
             last.bullets[last.bullets.length - 1] = joinCont(last.bullets[last.bullets.length - 1], line);
           } else {
             d.projects.push({ name: line.replace(/\*\*/g, "").replace(/:$/, ""), bullets: [] });

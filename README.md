@@ -37,13 +37,42 @@ browser's `localStorage` and autosaves on every keystroke.
   - `.txt` / `.md` - parsed with the same section-aware parser.
   - `.json` - a file previously exported from the builder (lossless round-trip).
 - **Edit** every field with a live A4 preview beside the form. Sections and the
-  entries inside them can be reordered or removed, and `**bold**` works in any
-  bullet. Unrecognised headings (e.g. "OPEN SOURCE CONTRIBUTIONS") import as
-  custom sections, and new ones can be added.
+  entries inside them can be reordered or removed. Unrecognised headings (e.g.
+  "OPEN SOURCE CONTRIBUTIONS") import as custom sections, and new ones can be
+  added.
+- **Format** inline, in any bullet, title, heading or the summary:
+  - `**bold lead-in**` → **bold lead-in**
+  - `[PR #51644](https://github.com/frappe/erpnext/pull/51644)` → a link
+  Links print as real PDF link annotations (clickable in the exported PDF) and
+  flatten to `label (url)` in the plain-text export. Only `http(s)` and `mailto`
+  URLs are linked; anything else renders as plain text.
 - **Download PDF** prints the preview via the browser's print dialog
   ("Save as PDF"), so the output is real selectable text at A4 - not an image.
   `Cmd/Ctrl+S` does the same. **Export** also offers `.json` (the editable
   source of truth - keep this for future updates) and `.txt`.
+
+### ATS notes
+
+The printed PDF is built to survive resume parsers: single column, no tables,
+text boxes, columns, images or icons, standard uppercase section headings, real
+`<h1>`/`<h2>`/`<ul>` structure, and dates in `Mon YYYY - Mon YYYY` form.
+
+Two details are deliberate rather than incidental:
+
+- **Bullet glyphs are literal `•` characters**, not CSS `list-style` markers.
+  Chrome omits `::marker` from a printed PDF's text layer, so a parser would see
+  bullet text with no bullets - and the builder could not re-import its own PDF.
+- **Links keep their label as the visible text**, so extraction yields
+  "PR #51644" rather than a raw URL in the middle of a sentence.
+
+When printing, turn **off** "Headers and footers" in the browser's print dialog -
+otherwise Chrome stamps the page URL and date onto the PDF, which parsers read as
+resume content. For a maximally conservative submission, use the `.txt` export.
+
+Verified by extracting the printed PDF with pdf.js: coordinate-aware extraction
+(what pdftotext / Apache Tika / PyMuPDF do) returns the resume in reading order,
+one line per visual line, bullets included. Re-importing the tool's own printed
+PDF reproduces every section, role, date, sub-group and bullet.
 
 The page is `noindex` and excluded in `robots.txt`; it is deliberately not linked
 from the site nav. To link it, add an entry to `content.json` → `nav`.

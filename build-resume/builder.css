@@ -101,11 +101,13 @@ label.btn { margin: 0; }
 /* --------------------------------------------------------------- Form parts */
 .fset { margin: 22px 0 0; }
 .fset-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px 12px;
+  flex-wrap: wrap;
   width: 100%; padding: 0 0 8px; margin: 0 0 14px;
   border-bottom: 1px solid var(--border);
 }
 .fset-title {
+  min-width: 0; margin: 0; overflow-wrap: anywhere;
   font-family: var(--mono); font-size: 0.78rem; font-weight: 500;
   letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent);
 }
@@ -136,10 +138,15 @@ label.btn { margin: 0; }
 }
 .card.sub { background: var(--bg-alt); box-shadow: none; }
 .card-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px 10px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
 }
-.card-idx { font-family: var(--mono); font-size: 0.72rem; color: var(--text-soft); }
+.card-idx {
+  min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text-soft);
+}
+.icon-row { flex: 0 0 auto; }
 
 .icon-row { display: flex; gap: 4px; }
 .icon-btn {
@@ -219,8 +226,15 @@ label.btn { margin: 0; }
 .r-org { font-style: italic; color: #1f2937; }
 .r-client { margin-top: 3pt !important; font-weight: 700; }
 
-.page ul { margin: 3pt 0 0; padding-left: 14pt; list-style: disc; }
-.page li { margin: 0 0 2.5pt; break-inside: avoid; }
+/* Bullet glyphs are real text, not CSS list markers: Chrome leaves ::marker out
+   of a printed PDF's text layer, so a literal "\2022" is what keeps the printed
+   resume parseable by ATS software (and re-importable by this builder). */
+.page ul { margin: 3pt 0 0; padding-left: 0; list-style: none; }
+.page li {
+  margin: 0 0 2.5pt; padding-left: 12pt; text-indent: -12pt;
+  break-inside: avoid;
+}
+.page li::before { content: "\2022\00a0\00a0"; }
 .page li:last-child { margin-bottom: 0; }
 
 .r-skill { margin: 0 0 2.5pt !important; }
