@@ -1,2 +1,5 @@
 .DS_Store
 *.log
+
+# tokensave (local code graph / session state)
+.tokensave/
