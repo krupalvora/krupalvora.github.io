@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
+# Personal tool, not portfolio content
+Disallow: /build-resume/
+
 Sitemap: https://krupalvora.github.io/sitemap.xml

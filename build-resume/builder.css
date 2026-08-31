@@ -1,0 +1,254 @@
+/* ==========================================================================
+   Resume builder (/build-resume) - editor chrome + A4 document + print rules.
+   Design tokens come from ../styles.css.
+   ========================================================================== */
+
+.builder-body { background: var(--bg-alt); }
+html { scroll-behavior: auto; }
+
+/* ------------------------------------------------------------------ Toolbar */
+.toolbar { display: flex; align-items: center; gap: 8px; }
+.btn-sm { padding: 8px 14px; font-size: 0.88rem; }
+.btn-sm:hover { transform: none; }
+label.btn { margin: 0; }
+
+.save-state {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text-soft);
+  white-space: nowrap; margin-right: 4px;
+}
+
+.menu { position: relative; }
+.menu-list {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 120;
+  min-width: 220px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+}
+.menu-list button {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 12px; border: 0; border-radius: var(--radius-sm);
+  background: none; font: inherit; font-size: 0.9rem; color: var(--text); cursor: pointer;
+}
+.menu-list button:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.menu-list button[data-act="clear"] { color: #b42318; }
+.menu-list button[data-act="clear"]:hover { background: #fef3f2; color: #912018; }
+
+/* ---------------------------------------------------------------- Workspace */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(380px, 1fr) minmax(420px, 1.05fr);
+  align-items: start;
+  min-height: calc(100vh - var(--header-h));
+}
+
+.editor {
+  padding: 24px clamp(16px, 2.5vw, 32px) 64px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.preview {
+  position: sticky; top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  display: flex; flex-direction: column;
+  background: #eef2f7;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .workspace { grid-template-columns: 1fr; }
+  .editor { border-right: 0; border-bottom: 1px solid var(--border); }
+  .preview { position: static; height: auto; min-height: 70vh; }
+}
+
+/* Small screens: let the header stack so no action is pushed off-screen. */
+@media (max-width: 780px) {
+  .site-header { position: static; height: auto; }
+  .header-inner { height: auto; flex-wrap: wrap; gap: 10px; padding: 12px 0; }
+  .toolbar { width: 100%; flex-wrap: wrap; }
+  .save-state { order: 5; flex-basis: 100%; margin: 0; }
+  .toolbar .btn { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ---------------------------------------------------------------- Drop zone */
+.dropzone {
+  border: 2px dashed var(--border-strong); border-radius: var(--radius-lg);
+  padding: 22px; text-align: center; background: var(--bg-alt);
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone.hot { border-color: var(--accent); background: var(--accent-soft); }
+.dz-title { margin: 0; font-weight: 600; }
+.dz-hint { margin: 6px 0 0; font-size: 0.88rem; color: var(--text-muted); }
+.linkish {
+  border: 0; background: none; padding: 0; font: inherit; color: var(--accent);
+  text-decoration: underline; cursor: pointer;
+}
+
+.paste-panel {
+  margin-top: 14px; padding: 16px;
+  border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-alt);
+}
+.import-note {
+  margin: 12px 0 0; padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--accent-soft); border: 1px solid var(--accent-border);
+  font-size: 0.88rem; color: var(--text);
+}
+.import-note.error { background: #fef3f2; border-color: #fecdc9; color: #912018; }
+
+.fine { margin: 28px 0 0; font-size: 0.8rem; color: var(--text-soft); }
+
+/* --------------------------------------------------------------- Form parts */
+.fset { margin: 22px 0 0; }
+.fset-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 0 0 8px; margin: 0 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+.fset-title {
+  font-family: var(--mono); font-size: 0.78rem; font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent);
+}
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+.fld { display: block; margin-bottom: 12px; min-width: 0; }
+.fld > span {
+  display: block; margin-bottom: 5px;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
+}
+.fld input, .fld textarea, .fld select {
+  width: 100%; padding: 9px 11px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: #fff; color: var(--text);
+  font-family: var(--font); font-size: 0.92rem; line-height: 1.5;
+}
+.fld textarea { resize: vertical; min-height: 76px; }
+.fld input:focus, .fld textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.hint { display: block; margin-top: 4px; font-size: 0.74rem; color: var(--text-soft); font-weight: 400; }
+
+.card {
+  position: relative; margin-bottom: 14px; padding: 16px;
+  border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.card.sub { background: var(--bg-alt); box-shadow: none; }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 12px;
+}
+.card-idx { font-family: var(--mono); font-size: 0.72rem; color: var(--text-soft); }
+
+.icon-row { display: flex; gap: 4px; }
+.icon-btn {
+  display: grid; place-items: center;
+  width: 28px; height: 28px; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; color: var(--text-muted);
+  font-size: 0.8rem; line-height: 1; cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn.danger:hover { border-color: #f97066; color: #b42318; }
+
+.add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: 1px dashed var(--border-strong); border-radius: var(--radius-pill);
+  background: #fff; color: var(--text-muted);
+  font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+}
+.add-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ------------------------------------------------------------ Preview shell */
+.preview-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 18px; border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+}
+.preview-label { font-family: var(--mono); font-size: 0.74rem; color: var(--text-soft); }
+.zoom { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
+.zoom select {
+  padding: 4px 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: #fff; font: inherit; font-size: 0.8rem;
+}
+.preview-scroll {
+  flex: 1; min-width: 0; overflow: auto; padding: 24px;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+
+/* ------------------------------------------------------- The A4 document */
+.page {
+  zoom: var(--zoom, 0.7);
+  flex: 0 0 auto;
+  width: 210mm; min-height: 297mm;
+  padding: 14mm 16mm;
+  background: #fff; box-shadow: var(--shadow-lg);
+  color: #111827;
+  font-family: var(--font);
+  font-size: 10.5pt; line-height: 1.38;
+}
+.page * { text-wrap: initial; }
+
+.r-name {
+  margin: 0 0 2pt; text-align: center;
+  font-size: 19pt; font-weight: 700; letter-spacing: 0.01em; line-height: 1.2;
+}
+.r-sub { margin: 0; text-align: center; font-size: 10.5pt; color: #1f2937; }
+.r-sub + .r-sub { margin-top: 1pt; }
+/* links stay real anchors, so printing to PDF keeps them clickable */
+.page a { color: #1d4ed8; text-decoration: underline; }
+
+.r-sec { margin-top: 12pt; }
+.r-sec h2 {
+  margin: 0 0 5pt; padding-bottom: 2pt;
+  border-bottom: 1.1pt solid #111827;
+  font-size: 10.5pt; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+  break-after: avoid;
+}
+.r-sec p { margin: 0; }
+
+.r-item { margin-top: 7pt; }
+.r-item:first-of-type { margin-top: 0; }
+.r-item-top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12pt;
+}
+.r-item-title { font-weight: 700; }
+.r-dates { flex: 0 0 auto; font-size: 10pt; color: #1f2937; white-space: nowrap; }
+.r-org { font-style: italic; color: #1f2937; }
+.r-client { margin-top: 3pt !important; font-weight: 700; }
+
+.page ul { margin: 3pt 0 0; padding-left: 14pt; list-style: disc; }
+.page li { margin: 0 0 2.5pt; break-inside: avoid; }
+.page li:last-child { margin-bottom: 0; }
+
+.r-skill { margin: 0 0 2.5pt !important; }
+.r-empty { color: #9ca3af; font-style: italic; }
+
+/* ---------------------------------------------------------------- Printing */
+@page { size: A4; margin: 13mm 15mm; }
+
+@media print {
+  html, body { background: #fff; }
+  .site-header, .editor, .preview-bar, .skip-link { display: none !important; }
+  .workspace { display: block; min-height: 0; }
+  .preview { position: static; height: auto; background: #fff; display: block; }
+  .preview-scroll { overflow: visible; padding: 0; display: block; }
+  .page {
+    zoom: 1;
+    width: auto; min-height: 0; padding: 0;
+    box-shadow: none; font-size: 10.5pt;
+  }
+  .r-sec { break-inside: auto; }
+}
+
+/* section fieldset head: add-button plus reorder/remove controls */
+.head-tools { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.fine code {
+  font-family: var(--mono); font-size: 0.76rem;
+  padding: 1px 5px; border-radius: 4px;
+  background: var(--bg-alt); border: 1px solid var(--border);
+  word-break: break-all;
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Resume Builder - Krupal Vora</title>
+  <meta name="description" content="A private resume builder: import an existing resume, edit it in a live A4 preview, and export to PDF or JSON." />
+  <!-- Personal tool, not a public page: keep it out of search results. -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="builder.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body class="builder-body">
+  <a class="skip-link" href="#editor">Skip to editor</a>
+
+  <header class="site-header scrolled" id="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="../" aria-label="Krupal Vora - home">
+        <span class="logo-mark" aria-hidden="true">KV</span>
+        <span class="logo-text">Resume Builder</span>
+      </a>
+
+      <div class="toolbar" role="group" aria-label="Resume actions">
+        <span class="save-state" id="save-state" role="status" aria-live="polite"></span>
+
+        <label class="btn secondary btn-sm" for="import-file">
+          <input type="file" id="import-file" accept=".json,.pdf,.txt,.md,application/json,application/pdf,text/plain,text/markdown" hidden />
+          Import
+        </label>
+
+        <div class="menu" id="export-menu">
+          <button class="btn secondary btn-sm" type="button" id="export-toggle" aria-expanded="false" aria-haspopup="true">Export</button>
+          <div class="menu-list" id="export-list" hidden>
+            <button type="button" data-act="export-json">Data file (.json)</button>
+            <button type="button" data-act="export-txt">Plain text (.txt)</button>
+            <button type="button" data-act="reset">Reset to sample resume</button>
+            <button type="button" data-act="clear">Clear everything</button>
+          </div>
+        </div>
+
+        <button class="btn primary btn-sm" type="button" id="download-pdf">Download PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- ------------------------------------------------------------ EDITOR -->
+    <section class="editor" id="editor" aria-label="Resume editor">
+      <div class="dropzone" id="dropzone">
+        <p class="dz-title">Drop a resume here</p>
+        <p class="dz-hint">
+          <strong>.pdf</strong> or <strong>.txt</strong> in the format of your current resume, or a
+          <strong>.json</strong> exported from this builder. Or
+          <button type="button" class="linkish" id="paste-open">paste the text</button>.
+        </p>
+      </div>
+
+      <div class="paste-panel" id="paste-panel" hidden>
+        <label class="fld">
+          <span>Paste resume text</span>
+          <textarea id="paste-text" rows="10" placeholder="KRUPAL VINOD VORA&#10;Senior Software Engineer | ERP &amp; Cloud Architecture&#10;..."></textarea>
+        </label>
+        <div class="row-actions">
+          <button class="btn primary btn-sm" type="button" id="paste-parse">Parse &amp; load</button>
+          <button class="btn secondary btn-sm" type="button" id="paste-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <p class="import-note" id="import-note" role="status" aria-live="polite" hidden></p>
+
+      <div id="form"></div>
+
+      <p class="fine">
+        Everything is stored in this browser only (localStorage) - nothing is uploaded.
+      </p>
+      <p class="fine">
+        <strong>Formatting</strong> - inside any bullet, heading or summary:
+        <code>**bold lead-in**</code> for bold, and
+        <code>[PR #51644](https://github.com/frappe/erpnext/pull/51644)</code> for a link.
+        Links print as clickable text in the PDF and flatten to
+        <em>label (url)</em> in the plain-text export.
+      </p>
+    </section>
+
+    <!-- ----------------------------------------------------------- PREVIEW -->
+    <section class="preview" aria-label="Resume preview">
+      <div class="preview-bar">
+        <span class="preview-label">Live preview · A4</span>
+        <label class="zoom">
+          Zoom
+          <select id="zoom">
+            <option value="fit" selected>Fit width</option>
+            <option value="0.55">55%</option>
+            <option value="0.7">70%</option>
+            <option value="0.85">85%</option>
+            <option value="1">100%</option>
+          </select>
+        </label>
+      </div>
+      <div class="preview-scroll" id="preview-scroll">
+        <article class="page" id="page"></article>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -23,6 +23,30 @@ need to touch the layout or styles.
 | `llms.txt` | Plain-text profile mirror for AI agents / LLMs. |
 | `robots.txt`, `sitemap.xml` | SEO crawl directives. |
 | `assets/` | Headshot (`kv_headshot.jpg`), OG image (`kv_og.jpg`), resume PDF, brand logos. |
+| `build-resume/` | Resume builder at `/build-resume` - see below. Self-contained (`index.html`, `app.js`, `builder.css`); reuses the site's design tokens from `styles.css`. |
+
+## Resume builder - `/build-resume`
+
+A private, client-side resume editor. Nothing is uploaded: the draft lives in the
+browser's `localStorage` and autosaves on every keystroke.
+
+- **Import** an existing resume by dropping a file or pasting text:
+  - `.pdf` - text is extracted with [pdf.js](https://mozilla.github.io/pdf.js/)
+    (loaded from cdnjs on demand) and parsed into the form. PDFs carry no
+    bold/italic information, so re-add `**bold**` lead-ins after importing.
+  - `.txt` / `.md` - parsed with the same section-aware parser.
+  - `.json` - a file previously exported from the builder (lossless round-trip).
+- **Edit** every field with a live A4 preview beside the form. Sections and the
+  entries inside them can be reordered or removed, and `**bold**` works in any
+  bullet. Unrecognised headings (e.g. "OPEN SOURCE CONTRIBUTIONS") import as
+  custom sections, and new ones can be added.
+- **Download PDF** prints the preview via the browser's print dialog
+  ("Save as PDF"), so the output is real selectable text at A4 - not an image.
+  `Cmd/Ctrl+S` does the same. **Export** also offers `.json` (the editable
+  source of truth - keep this for future updates) and `.txt`.
+
+The page is `noindex` and excluded in `robots.txt`; it is deliberately not linked
+from the site nav. To link it, add an entry to `content.json` → `nav`.
 
 ## SEO & AI-agent ("MCP") readiness
 
