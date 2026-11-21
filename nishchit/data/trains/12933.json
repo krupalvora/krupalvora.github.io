@@ -1,0 +1,19 @@
+{
+  "number": "12933",
+  "name": "KARNAVATI EXP",
+  "classes": ["3A", "SL"],
+  "composition": ["B1", "B2", "B3", "S1", "S2", "S3", "S4", "S5"],
+  "route": [
+    { "code": "MMCT", "name": "MUMBAI CENTRAL",  "arr": null,    "dep": "13:40", "day": 1, "km": 0 },
+    { "code": "DDR",  "name": "DADAR",           "arr": "13:52", "dep": "13:54", "day": 1, "km": 6 },
+    { "code": "BVI",  "name": "BORIVALI",        "arr": "14:17", "dep": "14:19", "day": 1, "km": 30 },
+    { "code": "VAPI", "name": "VAPI",            "arr": "15:58", "dep": "16:00", "day": 1, "km": 178 },
+    { "code": "BL",   "name": "VALSAD",          "arr": "16:18", "dep": "16:20", "day": 1, "km": 202 },
+    { "code": "ST",   "name": "SURAT",           "arr": "17:24", "dep": "17:29", "day": 1, "km": 271 },
+    { "code": "BH",   "name": "BHARUCH JN",      "arr": "18:16", "dep": "18:18", "day": 1, "km": 330 },
+    { "code": "BRC",  "name": "VADODARA JN",     "arr": "19:01", "dep": "19:11", "day": 1, "km": 400 },
+    { "code": "ANND", "name": "ANAND JN",        "arr": "19:38", "dep": "19:40", "day": 1, "km": 436 },
+    { "code": "ND",   "name": "NADIAD JN",       "arr": "19:53", "dep": "19:55", "day": 1, "km": 454 },
+    { "code": "ADI",  "name": "AHMEDABAD JN",    "arr": "21:05", "dep": null,    "day": 1, "km": 500 }
+  ]
+}

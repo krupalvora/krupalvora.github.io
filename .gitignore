@@ -3,3 +3,9 @@
 
 # tokensave (local code graph / session state)
 .tokensave/
+
+# Nishchit dev (local only, never deployed)
+nishchit/.irctc-session
+nishchit/.irctc-dumps/
+nishchit/node_modules/
+nishchit/.chrome-irctc/

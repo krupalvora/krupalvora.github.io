@@ -1,0 +1,336 @@
+TRD: GapSeat Reverse-Engineered (Post-Chart Seat Finder)
+Nov 21, 2026 · @Krupal Vora
+Summary
+GapSeat is most likely a Flutter app that calls IRCTC's public chart endpoints straight from the user's phone, computes segment vacancy and seat hops on the device, and earns from AdMob. No backend is visible; the website is SEO content on Firebase Hosting.
+Confidence key: Confirmed = stated on GapSeat's pages, its Play listing or a public repo. Likely = two or more clues agree. Guess = one clue.
+Component
+Finding
+Confidence
+Operator
+FINFUSION PAYMENTS PRIVATE LIMITED, Noida (Play developer info)
+Confirmed
+App framework
+Flutter: the developer's Play contact email references Flutter
+Likely
+Data source
+IRCTC online-charts JSON endpoints (trainComposition, coachComposition)
+Likely
+Where the fetch runs
+On the phone: IRCTC's edge returns 403 to datacenter IPs
+Likely
+Compute
+Vacancy and seat hopping on the device
+Likely
+Website
+Firebase Hosting (gapseat.web.app), one SEO page per popular train
+Confirmed
+Analytics and ads
+Google Analytics, Firebase, AdMob
+Confirmed
+Notifications
+Notification permission plus "recheck" reminders; probably local, not server push
+Guess
+Traction
+10K+ installs, 4.2 stars from about 200 reviews, last update 5 Jul 2026
+Confirmed
+Two consequences for our build:
+1.  A server that watches charts and pushes alerts (the core of our PRD) cannot fetch from a cloud IP. It needs on-device fetching, or permission from IRCTC.
+2.  GapSeat's whole feature set is a 4 to 6 week build for one engineer (estimate). The moat has to come from what it doesn't do (section 11).
+Evidence
+Every inference below comes from public pages only. GapSeat's app was not decompiled or intercepted; its terms forbid reverse engineering the app.
+Source
+What it says
+Technical inference
+Terms (updated 9 Feb 2026)
+Independent third party; analyses "publicly available train chart data"; doesn't book or interact with IRCTC systems; ads may appear; Indian law
+Positions itself as information-only to stay clear of Railways Act s.143; ad-funded
+Privacy policy
+Collects name and email if given for notifications, device and OS, search queries, IP and approximate location; uses Google Analytics, Firebase, AdMob; sends notifications about seat availability
+Firebase stack; some notification path exists
+Play listing
+Developer FINFUSION PAYMENTS PRIVATE LIMITED, Noida; 10K+ installs; data safety says no data collected or shared; privacy link points to gapseat.web.app
+Firebase Hosting; data safety contradicts the privacy policy
+Is GapSeat safe
+Permissions: internet, notifications for alerts, location for a speedometer; cites Railways Act s.143; no IRCTC login or payments
+GPS speedometer is a side feature; alerts are local or Firebase-based
+How to use
+Input: 5-digit train number and date; shows "chart not yet available"; output: coach, berth number, berth type, free segment; check within 10 to 15 minutes of the chart
+One train per query, no route search, no station autocomplete in the app
+Features
+Website asks boarding station, destination and train; results are a snapshot; says the chart comes about 8 hours before departure
+Chart timing is hardcoded in content and already stale (now 10 hours)
+Methodology
+Names no provider or interface; multi-segment paths are "only a suggestion"
+Deliberately vague on data access
+Play reviews
+Vacant, partial and booked filter buttons don't respond; "all seats" shows only vacant seats
+Guess: the app may load only a vacant-berth list, not full coach layouts
+Site map
+Pages per train (12952, 12301), a Hindi guide
+Programmatic SEO on train-number searches
+Public repos (IRCTC_Chart_vacant, indian-rail-mcp)
+Chart data comes from POST endpoints under /online-charts/api/; a hosted server gets 403, a local machine succeeds with identical code
+Any GapSeat-like app must fetch from user devices or hold IRCTC permission
+Architecture
+The phone does all the work: it fetches the chart, computes vacancy and hops, and shows results; Google services and a static site sit around it.
+The dashed path is the one our PRD assumed: a server watching charts. IRCTC's edge refuses it, so either the watcher moves onto the phone or the data comes through a partnership.
+Data sources and ingestion
+All berth data comes from the JSON endpoints behind IRCTC's public Charts/Vacancy page; the page itself asks for train number, journey date and boarding station. Endpoint names are confirmed by public repos; request and response fields beyond those named below are not, and must be read off the page's own network calls in a browser.
+Endpoint
+Method
+Returns
+Notes
+/online-charts/api/trainComposition
+POST
+Train composition: coach list cdd[], classes present, chart status
+Returns 403 to datacenter IPs; headers don't change that
+/online-charts/api/coachComposition
+POST
+Per coach: berths bdd[], each with segments bsd[] carrying occupancy
+false = vacant, true = occupied, anything else = unknown
+/online-charts/api/vacantBerth
+POST
+Vacant berth list
+One community tool doesn't trust it per berth; use only as a fast first pass
+/eticketing/protected/mapps1/trnscheduleenquiry/{trainNo}
+GET
+Schedule with stationList[].distance
+Session-gated; prefer a bundled timetable
+Ingestion flow, per search (on device)
+1.  Resolve train, date and boarding station from the user's input.
+2.  Call trainComposition. If the chart isn't prepared, schedule a local retry at the expected chart time and stop.
+3.  Call coachComposition for each coach in the selected classes, one at a time, with a 500 ms gap.
+4.  Map every bsd[] segment onto station sequence numbers from the timetable.
+5.  Compute vacancy and plans, then cache by train, date and chart stage.
+Static data
+• Station master and train timetables: bundled in the app, refreshed weekly from our CDN.
+• Chart timing rules (20:00 previous day for 05:01 to 14:00 departures, 10 hours before for the rest): in remote config, not code. GapSeat's copy still says 8 hours, which shows the cost of hardcoding.
+Data model
+Seven entities; everything the planner needs fits in a per-search snapshot of roughly 1,000 berths and 20 to 40 stops.
+Entity
+Key fields
+Source
+Train
+train_no, name, source_stn, dest_stn, run_days
+Bundled timetable
+RouteStop
+train_no, seq, stn_code, arr, dep, day_offset, distance_km
+Bundled timetable
+ChartSnapshot
+train_no, journey_date, boarding_stn, chart_stage (first, second), fetched_at, status
+trainComposition
+Coach
+snapshot_id, coach_id, class_code, berth_count
+cdd[]
+Berth
+coach_id, berth_no, berth_type (LB, MB, UB, SL, SU, chair car seat)
+bdd[]
+BerthSegment
+berth_id, from_seq, to_seq, state (vacant, occupied, unknown)
+bsd[] mapped to RouteStop.seq
+Plan
+snapshot_id, from_seq, to_seq, legs[], switches, km_covered, score
+Planner output
+Rules:
+• Segments use half-open intervals [from_seq, to_seq) so a berth freed at a station can be taken at that same station.
+• unknown is never treated as vacant.
+• Snapshots are immutable; a second-chart fetch creates a new snapshot, so the two can be compared.
+• No passenger names or PNRs are stored in this model.
+Core algorithms
+Three steps run on the device in under 50 ms for a full train: normalise segments, find plans, rank them.
+1. Normalise segments
+• Map each bsd[] entry to [from_seq, to_seq) using the timetable order.
+• Merge only adjacent vacant segments of the same berth; gaps stay gaps.
+• Drop segments that end before the user's origin or start after the destination.
+2. Find plans
+1.  Full journey: any berth with one vacant interval covering [origin, destination).
+2.  Seat hopping: greedy interval cover; from the current station, take the vacant interval reaching furthest, repeat. This gives the minimum number of legs.
+3.  Partial: when the destination is unreachable, return the plan reaching the furthest station, with km covered.
+legs = []; c = origin
+while c < dest:
+    best = max(vacant segments with from_seq <= c < to_seq, key = to_seq)
+    if best is None: return partial(legs, c)
+    legs.append(best.clip(c, dest)); c = best.to_seq
+return legs
+3. Rank (GapSeat publishes no ranking; this order follows the public IRCTC_Chart_vacant tool, then adds ours)
+1.  Km covered (verified from the timetable).
+2.  Fewer legs.
+3.  Lower berths first; side berths last on legs over 6 hours.
+4.  Same or adjacent coach at each switch.
+Test fixtures: capture 20 real snapshots per class (SL, 3A, 2A, CC) and assert plan output; field meanings may change without notice.
+Internal API contract
+Because chart data is fetched on the device, the contract has two halves: a device module that never leaves the phone, and a thin backend that serves only static data and config.
+Device module (Dart)
+Call
+Input
+Output
+ChartClient.fetch
+train_no, date, boarding_stn, classes[]
+ChartSnapshot or NOT_PREPARED with expected_at
+Planner.plan
+snapshot, from_stn, to_stn, party_size, prefs
+Plan[] ranked, max 3
+Watcher.schedule
+train_no, date, from_stn, to_stn
+Local job id; fires at expected chart time, retries every 5 min for 30 min
+Backend (read-only, cacheable)
+Endpoint
+Purpose
+Cache
+GET /v1/config
+Chart slot rules, IRCTC endpoint paths, throttle values, kill switch
+15 min
+GET /v1/stations?q=
+Station autocomplete and city clusters
+7 days
+GET /v1/trains/between?from=&to=&date=
+Candidate trains for route search (our addition)
+1 day
+GET /v1/trains/{no}/route
+Ordered stops with distance_km
+7 days
+The backend never calls IRCTC. Endpoint paths live in config so an IRCTC change is fixed without an app release.
+Clients
+One Flutter codebase covers Android and iOS (GapSeat has no iOS app); the website is a static SEO layer that funnels installs.
+Mobile app (Flutter)
+• Screens: search (PNR or train or two cities), results by coach, plan detail, watched trips, settings.
+• Background: Android WorkManager and iOS BGTaskScheduler wake the app near chart time, fetch, and raise a local notification. iOS gives no exact timing, so iOS users also get a "check now" prompt at chart time.
+• Storage: SQLite for snapshots and watched trips; purge 7 days after travel.
+• Ads: none in v1; GapSeat's ads compete with a time-critical task.
+• Telemetry: Firebase Crashlytics and Analytics, with no PNR or search text in events.
+Website (Next.js, static export)
+• One page per popular train and route, generated from the timetable, plus Hindi and regional versions; this mirrors GapSeat's main acquisition channel.
+• Each page explains chart timing for that train and links to the app.
+• No live chart lookups on the web in v1: a browser tool would need either cross-origin access to IRCTC or a server proxy, and a cloud proxy hits the 403 block.
+Non-functional requirements
+The binding constraint is IRCTC's load, not ours: one search costs 1 train call plus 1 call per coach, so throttling and caching come first. Targets are estimates to validate in the pilot.
+Area
+Requirement
+Calls per search
+1 trainComposition + up to 20 coachComposition (one class set); never more than 25
+Throttle
+Sequential calls, at least 500 ms apart; back off 60 s on any 403 or 429 and stop after 3 failures
+Cache
+Snapshot reused for 10 min per train, date and chart stage; a repeat search within that window makes no calls
+Latency
+First vacant berth on screen in under 5 s; full plan in under 15 s (p95), rendered progressively as coaches arrive
+Watch jobs
+At most 3 active watches per device; each stops after the second chart
+Resilience
+Endpoint paths and field names in remote config; kill switch disables fetching on all devices within 15 min
+App size
+Under 15 MB including the bundled timetable
+Offline
+Search, station data and saved plans work offline; only the fetch needs network
+Security, privacy and legal
+Using IRCTC's chart data is a grey zone: not clearly illegal, not clearly permitted. India has no scraping statute, so the risk turns on how the data is accessed, what is taken and how it is used (LegalKart). This is not legal advice; get a written opinion before launch.
+Law or rule
+What it says
+Risk for us
+IT Act s.43
+Civil compensation for downloading, copying or extracting data from a computer resource without the owner's permission (LawRato)
+Main exposure, especially for bulk or server-side extraction
+IT Act s.66
+Criminal only when done dishonestly or fraudulently; a script alone doesn't prove intent
+Low for a read-only app; rises sharply if access controls are bypassed
+IRCTC terms
+Booking terms bind registered users who click accept; the charts page needs no login
+A contract claim is weaker for logged-out reads, but still possible
+Technical blocks
+IRCTC runs anti-bot systems through a CDN (Ministry of Railways) and returns 403 to datacenter IPs
+Routing around a block is the clearest red line: it shows access was denied
+Copyright Act 1957
+Facts aren't owned; a compilation needs originality (Eastern Book Co. v. D.B. Modak)
+Berth status is factual: low risk. Don't copy IRCTC's UI, logo or name
+DPDP Act 2023
+Governs personal data; public availability is not a blanket exemption
+Chart berth data has no names; PNR handling brings the Act in
+Railways Act s.143
+Up to 3 years in jail for unauthorised business of procuring and supplying tickets (CourtBook); the Supreme Court called it a social crime in 2025 (Drishti)
+Never book on users' behalf without authorised agent status
+Risk tiers
+• Lower: user-initiated, on-device, throttled reads of the public page; cached; no login; nothing bypassed; source credited; no resale. This is GapSeat's apparent pattern.
+• Higher: server-side crawling of every train, storing vacancy history at scale, selling the data or an API, retrying through 403s.
+• Off-limits: evading blocks (proxy pools, IP rotation, CAPTCHA solving), booking for users, IRCTC branding.
+Our "should I wait?" vacancy history needs bulk collection, so it sits in the higher tier: get written permission from IRCTC or CRIS before building it.
+Security and privacy requirements
+• Never ask for IRCTC credentials or OTPs.
+• Keep PNRs on the device; if one must reach our server, take explicit consent, encrypt it and purge it 7 days after travel.
+• Keep the Play data safety form consistent with the privacy policy. GapSeat's form says no data is collected while its policy lists IP, location and search queries: a Play policy risk we shouldn't copy.
+• Show "not affiliated with IRCTC or Indian Railways; a plan is not a ticket" on every results screen.
+GapSeat's gaps and our deltas
+Parity costs about 4 weeks; the deltas below are where the differentiation lives, ordered by user value.
+Capability
+GapSeat today
+Our build
+Effort (est.)
+Input
+5-digit train number and date
+Train number, two cities, or PNR
+1 week
+Route search
+None: one train per query
+Trains between two cities from the bundled timetable, capped at the 5 nearest departures to limit IRCTC load
+1 week
+Chart-time alert
+Recheck reminders
+Local job wakes at chart time, fetches, notifies with a ready plan
+1 week
+Classes
+Single class filter (per a reviewer)
+All classes in one pass, or user-picked
+2 days
+Platforms
+Android and web
+Android and iOS from one Flutter codebase, plus web
+Included
+Booking handoff
+"Go to IRCTC"
+Per-leg handoff, scarcest leg first, fare total
+3 days
+Chart timing
+Copy says 8 hours (stale)
+Remote config, current 10-hour and 20:00 rules
+1 day
+Ads
+AdMob
+None in v1
+None
+Data safety
+Form contradicts policy
+Consistent, minimal collection
+1 day
+Vacancy history and odds
+None
+Only with IRCTC or CRIS permission (see legal)
+After permission
+Unknowns and how to confirm them
+Each is confirmed through public behaviour or IRCTC's own page, never by decompiling or intercepting GapSeat's app.
+[ ] Exact request bodies and response fields of the chart endpoints: open IRCTC's Charts/Vacancy page in a browser and read its network calls.
+[ ] Whether IRCTC's edge also blocks mobile-carrier IPs at volume: test from 2 or 3 devices at the pilot's throttle.
+[ ] How GapSeat's web tool fetches chart data from a browser: run a search on gapseat.in and watch your own browser's network panel.
+[ ] Whether GapSeat loads full coach layouts or only the vacant list: compare a busy train's result with IRCTC's coach view.
+[ ] A lawful source for PNR status (the public enquiry uses a CAPTCHA): without one, drop PNR input from v1 and keep train number and cities.
+[ ] IRCTC or CRIS appetite for a data partnership: email before the closed beta.
+[ ] Whether our use of the chart data is lawful: a written opinion from an Indian tech lawyer covering IT Act s.43 and IRCTC's terms.
+Sources
+All pages opened on 21 Nov 2026.
+GapSeat
+• Home
+• Terms
+• Privacy policy
+• Is GapSeat safe
+• Methodology
+• How to use
+• Features
+• City-pair checker
+• Google Play listing
+IRCTC chart service
+• IRCTC_Chart_vacant (GitHub)
+• indian-rail-mcp
+• Ministry of Railways: anti-bot measures, 4 Jun 2025
+Law
+• LegalKart: web scraping in India
+• LawRato: web scraping in India
+• Railways Act 1989, s.143
+• Drishti: Supreme Court on unauthorised e-tickets, 2025

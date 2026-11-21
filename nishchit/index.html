@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nishchit — Find vacant berths after the chart</title>
+  <meta name="description" content="Find berths left vacant after the reservation chart and stitch them into a seated journey, coach by coach." />
+  <meta name="theme-color" content="#f8fafc" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/results.css" />
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+    <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="./" aria-label="Nishchit home">
+        <span class="brand__mark" aria-hidden="true">नि</span>
+        <span class="brand__name">Nish<span class="accent">chit</span></span>
+      </a>
+      <a class="back-link" href="../">&larr; Krupal Vora</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero container" aria-labelledby="page-title">
+      <p class="eyebrow">post-chart seat finder</p>
+      <h1 id="page-title" class="hero__title">
+        Waitlisted?<br><span class="accent">Beat the chart.</span>
+      </h1>
+      <p class="hero__lead">
+        After the chart is prepared, berths sit empty on parts of the route — from
+        cancellations, no-shows and part-route bookings. Enter your train and stations: we find
+        one berth for the whole trip, or stitch partial berths together with the fewest switches.
+      </p>
+
+      <form id="search-form" class="card search-card" novalidate autocomplete="off">
+        <div class="field">
+          <label class="field__label" for="train-input"><span data-icon="train"></span>Train number</label>
+          <input id="train-input" name="train" class="input input--mono" inputmode="numeric"
+                 pattern="\d{5}" maxlength="5" placeholder="e.g. 19017"
+                 aria-describedby="train-status" required />
+          <p id="train-status" class="field__status" aria-live="polite"></p>
+        </div>
+
+        <fieldset class="field">
+          <legend class="field__label"><span data-icon="calendar"></span>Journey date</legend>
+          <div id="date-options" class="segmented segmented--3" role="radiogroup"></div>
+          <p class="field__help">Date the train leaves its source station.</p>
+        </fieldset>
+
+        <div class="stations">
+            <div class="field">
+              <label class="field__label field__label--dot" for="from-select">From</label>
+              <div class="select-wrap">
+                <select id="from-select" name="from" class="select" required disabled>
+                  <option value="">Select boarding station</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label field__label--dot" for="to-select">To</label>
+              <div class="select-wrap">
+                <select id="to-select" name="to" class="select" required disabled>
+                  <option value="">Select destination station</option>
+                </select>
+              </div>
+            </div>
+        </div>
+
+        <div class="field-row">
+          <fieldset class="field">
+            <legend class="field__label">Class</legend>
+            <div id="class-options" class="segmented segmented--compact" role="radiogroup"></div>
+          </fieldset>
+          <div class="field field--narrow">
+            <label class="field__label" for="party-select"><span data-icon="users"></span>Travellers</label>
+            <div class="select-wrap">
+              <select id="party-select" name="party" class="select select--compact"></select>
+            </div>
+          </div>
+        </div>
+
+        <p id="chart-hint" class="hint"><span class="hint__icon"><span data-icon="bulb"></span></span><span class="hint__text">The first chart is ready about 10 hours before departure.</span></p>
+
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+
+        <button type="submit" class="btn btn--primary btn--block">
+          <span data-icon="search"></span>Check vacancy
+        </button>
+      </form>
+    </section>
+
+    <section id="results" class="results container-wide" aria-live="polite" aria-busy="false" hidden></section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Not affiliated with IRCTC or Indian Railways. A plan is not a ticket.</strong></p>
+    <p>V1 shows simulated chart data and estimated fares. Always verify on IRCTC before travelling.</p>
+  </footer>
+
+  <noscript><p class="container">Nishchit needs JavaScript to search the chart.</p></noscript>
+</body>
+</html>

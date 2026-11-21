@@ -1,0 +1,17 @@
+{
+  "name": "nishchit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Find vacant berths after the IRCTC chart and stitch them into a seated journey. Static site, no build step.",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 5173",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "node tests/e2e.mjs",
+    "serve:live": "node server.mjs",
+    "serve:auto": "IRCTC_AUTO=1 node server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

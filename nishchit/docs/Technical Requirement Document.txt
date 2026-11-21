@@ -1,0 +1,325 @@
+PRD: Post-Chart Seat Finder (Indian Railways)
+Nov 21, 2026 · @Krupal Vora
+Summary
+Verdict: the pain is real, but the product as briefed already exists. IRCTC has shown segment-wise vacant berths since Feb 2019, and GapSeat already does seat hopping on top of that data. Build it only if it does what neither does today.
+What the revised product does differently:
+• Input: 1 field (paste a PNR) or 2 fields (from city, to city), down from 4. Train, date, class and station all default.
+• Timing: the app watches the trip and alerts when the first chart lands, then rechecks at the second chart. The user never has to check at the right minute.
+• Search scope: every train on the corridor, every class, nearby boarding and alighting stations. Not one train at a time.
+• Output: a bookable plan, not a seat list: legs, coach and berth, where to switch, total fare, and a booking handoff per leg.
+• Before chart: a historical vacancy score per train and segment, so users know if waiting is worth it.
+Biggest risk: data access. There is no public IRCTC API for chart data, so launch needs written permission or a licensed source (see Data sources).
+Fact check of the original problem statement
+The core mechanism holds: berths free up by segment, and stitching segments gets people seated. Five assumptions in the brief are wrong or outdated, and two of them change the product.
+Claim in the brief
+Reality (Nov 2026)
+Impact on the product
+With no confirmed seat, the user can still board on a waiting ticket
+No longer true. Waitlisted tickets, online or counter, are not valid in sleeper or AC coaches. Fines run Rs 250 (SL) to Rs 440 (AC) plus deboarding. Online WL e-tickets are auto-cancelled and refunded at chart (Zee News, IRCTC FAQ via FabHotels)
+Every plan must end in a confirmed ticket bought through current booking. "Board and hope" is not a valid outcome.
+The chart is prepared 4 hours before departure
+Changed twice: 8 hours (Jul 2025), then 10 hours (Dec 2025). Trains leaving 05:01 to 14:00 get their first chart by 20:00 the previous day. The second chart comes 30 to 5 minutes before departure (Hitavada, Oneindia, ThePrint)
+The window to act is now 10+ hours. Alerts at chart time become the core feature.
+Each station pair has a fixed quota (A to B 100, A to C 100, B to C 50)
+Simplified. Seats are split by quota type (General, Tatkal, Ladies, Senior Citizen, Pooled, Remote Location and others), not per station pair. Segment gaps come from where passengers board and alight, quotas released unused at chart, and cancellations before chart.
+Don't model quotas. Read the chart berth by berth, segment by segment.
+Users cancel after the chart, so seats free up
+E-tickets can't be cancelled after chart; refunds go through TDR (etrain FAQ). After the second chart, leftover berths move to the next remote location or are allotted on board by the TTE.
+Rescan at the second chart. After departure, switch to an on-board view for the TTE conversation.
+The user has no option when tickets are unavailable
+IRCTC Chart Vacancy shows vacant and partly booked berths coach-wise, with no login (PIB). Current booking sells them after the first chart (NewsX).
+The gap is discovery and stitching, not missing information.
+One more correction: the brief's "chart" URL is the public Charts/Vacancy page. It is a browser front end, not a published API.
+Existing solutions and the gap
+The original three features (vacant berth list, end-to-end combination, partial journey) are all live today. What is missing is the layer around them.
+Product
+What it does
+What it doesn't do
+IRCTC Chart Vacancy (web + Rail Connect app)
+Official coach layout per berth: vacant, partly booked, fully booked. Covers source and intermediate stations. No login.
+No stitching, no alerts, one train and one boarding station per query.
+GapSeat (web + Android, free)
+Berth-level vacancy per station pair. Seat hopping, e.g. B2-15 Delhi to Kota + B4-7 Kota to Mumbai. Recheck reminders.
+Needs a train number; one train at a time; reviewers note a single class filter. Reminders, not chart-triggered alerts. No booking link (how it works).
+etrain.info Current Booking
+Current booking availability by station pair for trains leaving in the next few hours.
+Counts only. No berth detail, no hopping.
+ConfirmTkt Alternates and similar booking apps
+Waitlist confirmation prediction, alternate train and bus combinations.
+Works before chart. Not berth-level planning after chart.
+The open gap, in order of user value:
+1.  Zero-effort timing: watch the trip and push the plan the minute a chart lands.
+2.  Corridor-wide search: all trains, classes and nearby stations from one query, no train number.
+3.  Bookable output: per-leg booking handoff, total fare, switch instructions.
+4.  Pre-chart signal: historical vacancy odds, so users decide early whether to wait or book a bus.
+Revised problem statement
+A traveller with no confirmed berth has no easy way to learn, in time, that a seated journey is possible by combining partial vacancies, and no fast way to book it.
+Why it happens:
+• Busy trains show deep waitlists yet run with berths empty on parts of the route, because passengers board and alight at different stations and quotas are released at chart.
+• Those berths become bookable through current booking only after the first chart, a moment the user has to catch manually.
+• Finding a usable combination means knowing the train number, reading a coach map segment by segment, then booking each leg separately before the second chart closes the window.
+• Since 2025, a waitlisted ticket is no fallback: it is invalid in reserved coaches.
+Who loses: the passenger, who pays for a bus or flight or drops the trip, and Railways, whose berths run empty on segments.
+Open question: how many berth-segments go empty per train is not published. The pilot must measure it on 20 to 30 busy trains before scaling.
+Target users and jobs to be done
+Four personas, each needing at most 2 typed inputs.
+Persona
+Situation
+Job to be done
+What they type
+Waitlisted traveller
+Holds a WL or RAC PNR on a busy corridor
+Tell me the minute there is a way to get seated on my train, and how
+PNR (1 field)
+Last-minute traveller
+Decides to travel today or tomorrow; every train shows WL or Regret
+Find any confirmed way from city A to city B tonight
+From city, to city (2 fields)
+Group organiser
+Travelling as 2 to 4 people
+Keep us in one coach, or at least one train
+PNR (party size comes from it)
+Already on board
+RAC or seated part-way, after the second chart
+Show which berths are empty now, so I can ask the TTE
+Nothing: the saved trip carries over
+Goals and success metrics
+The north-star metric is confirmed journeys: watched trips where the user booked every leg of a plan. Targets below are proposals for a 90-day pilot; baselines come from the pilot itself.
+Metric
+Pilot target
+Why it matters
+Typed inputs per search (median)
+1 to 2
+The core promise vs 4 today
+Chart published to user alerted (p95)
+Under 5 min
+Current booking is first come, first served
+Alert to plan on screen (p95)
+Under 3 s
+Plan must be ready when the user opens the alert
+Plan still bookable when user taps book
+90% or more
+Stale plans kill trust fast
+Watched trips that get a full-journey plan
+Baseline in weeks 1 to 4, then set a target
+Measures real supply of segment gaps
+Watched trips that get at least a partial plan
+Baseline in weeks 1 to 4
+Measures fallback value
+Seat changes per full plan (median)
+1 or fewer
+Each switch adds a ticket, fare and hassle
+Plan to all-legs-booked conversion
+25% or more
+Proves the output is actionable
+30-day repeat use
+30% or more
+Travel is infrequent; repeat use signals trust
+Non-goals for v1: booking inside the app, predicting waitlist confirmation before chart (beyond the vacancy score), unreserved or general coach guidance.
+Minimal-input user flow
+Typing stops at the first box; everything after it runs on its own until the user taps book.
+Polling runs only around the expected chart time, so the app never checks all day. The plan reaches the user as an alert, already built, with legs ordered for booking.
+Functional requirements
+P0 ships in the MVP; P1 follows once pilot data proves supply; P2 depends on a partnership.
+ID
+Requirement
+Acceptance criteria
+Priority
+F1
+PNR input
+Paste or share a PNR; app fills train, date, class, from, to, party size and status. No other field shown.
+P0
+F2
+Route input
+Two city fields with autocomplete. Each city expands to its station cluster (Mumbai: CSMT, LTT, BCT, BDTS, DR, TNA, KYN, BVI). Date defaults to the next 24 hours; class defaults to all.
+P0
+F3
+Trip watch
+Saving a trip schedules a chart check per train. Expected chart time comes from the departure slot (20:00 previous day, or 10 hours before). Polls with backoff until the chart appears.
+P0
+F4
+Alerts
+Push (PWA) and WhatsApp, email as fallback. One line: outcome, legs count, fare, link. Sent within 5 min of chart (p95).
+P0
+F5
+Plan engine
+Per train and class: full-journey single berth, then up to 2 switches, then furthest reachable station. Ranked by the rules in the engine section.
+P0
+F6
+Plan card
+Each leg: stations, coach, berth and type, switch time and halt minutes. Total fare, chart stage and timestamp, confidence.
+P0
+F7
+Booking handoff
+Per leg: open IRCTC current booking with details to copy, scarcest leg first. Marks a leg done when the user confirms.
+P0
+F8
+Group travel
+Party size N needs N berths per leg; same coach preferred, same train required.
+P0
+F9
+Second-chart recheck
+Rescan at the second chart; alert only if the plan got better or broke.
+P1
+F10
+Pre-chart vacancy score
+Historical odds per train, segment, class and weekday: "usually 6 to 10 berths free Surat to Mumbai on Fridays".
+P1
+F11
+Train switch combos
+Change trains at a junction with at least 30 min connection; shown only when no single-train plan exists.
+P1
+F12
+Station flex
+Suggest boarding one or two stations earlier or alighting later when that unlocks a full plan.
+P1
+F13
+On-board mode
+After departure, show berths vacant from the current station onward, for the TTE conversation.
+P1
+F14
+Silent preferences
+Learn from choices: lower berth, AC only, no switch between 23:00 and 06:00. Never asked upfront.
+P1
+F15
+Share plan
+One link for family to follow the trip and the switches.
+P1
+F16
+In-app booking
+Book all legs in one flow through an authorised partner.
+P2
+F17
+Regional languages
+Hindi, Marathi, Gujarati, Tamil, Telugu, Bengali UI and alerts.
+P2
+Recommendation engine
+The engine treats each berth as a set of vacant station intervals and finds the cheapest path from origin to destination. One train's chart solves in milliseconds; a corridor of 30 trains stays well under the 3 s budget.
+Data model
+• Route: ordered stations S0 to Sn, with arrival, departure and halt minutes.
+• Berth: train, class, coach, number, type.
+• Vacancy: per berth, the station intervals [i, j) where it is free, from the chart.
+• Query: origin index o, destination index d, party size k.
+Algorithm
+1.  Full journey: any berth whose free interval covers [o, d). Linear scan.
+2.  Fewest switches: greedy interval cover. From the current station, take the free interval that reaches furthest; repeat until d or no progress. Proven minimum legs.
+3.  Best plan: shortest path over stations. Each free interval is an edge; cost = switch weight plus penalties below. Return the top 3 distinct plans.
+4.  Partial: if d is unreachable, return the plan reaching the furthest station, and the latest boarding station from which d is reachable.
+5.  Groups: every leg needs k berths; switch stations are shared by the whole party.
+legs = []; c = o
+while c < d:
+    best = max(free intervals with start <= c, key = end)
+    if best is None or best.end <= c: return partial(legs, c)
+    legs.append(best.clip(c, d)); c = best.end
+return legs
+Ranking, in priority order
+1.  Fewer switches.
+2.  Safe switches: halt of 5 min or more, not between 23:00 and 06:00.
+3.  Short walks: same or adjacent coach at each switch.
+4.  Lower total fare. Each leg is a separate ticket with its own reservation charge, so show the cost above a through ticket.
+5.  Berth type: lower, then middle, then upper; side berths last on legs over 6 hours.
+Fallback ladder shown to the user
+1.  Same train and class, one berth, full journey.
+2.  Same train and class, up to 2 switches.
+3.  Same train, another class.
+4.  Station flex: board earlier or alight later within the city cluster.
+5.  Other trains on the corridor, repeating steps 1 to 4.
+6.  Change trains at a junction (P1).
+7.  Partial plan to the furthest station, with the uncovered distance in km.
+Data sources, legal and compliance
+Data access is the gating risk: the Charts/Vacancy page is public, but it is a website, not a licensed feed, and IRCTC's terms govern how it is used. No public launch until one of the routes below is cleared by a lawyer.
+Routes to the chart data, in order of preference
+1.  Authorised access: approach IRCTC and CRIS for a chart vacancy feed. IRCTC already licenses B2B partners and travel aggregators under agreements, so a data partnership is a known shape.
+2.  A licensed third-party provider that holds redistribution rights.
+3.  Closed beta only: on-demand fetches for named watched trips, heavy caching, low request rate, no resale. Stop on any objection.
+Other data
+• Train routes, timetables and station clusters: static, refreshed weekly.
+• Fares: computed per leg from the fare table; shown as an estimate until IRCTC confirms.
+• PNR status: same access question as charts; treat it under the same route.
+Compliance
+• Store berth status only. Never store passenger names or other people's booking details.
+• PNRs are personal data under the DPDP Act 2023: explicit consent, encrypted at rest, deleted 7 days after the journey.
+• Never ask for IRCTC login credentials.
+• WhatsApp alerts are opt-in, on approved message templates.
+• State on every screen: not affiliated with IRCTC or Indian Railways; a plan is not a ticket.
+Booking rules to verify before launch
+• Current booking cut-off when a leg starts at an intermediate station.
+• Whether one passenger may hold several current tickets on the same train for back-to-back legs.
+• Whether a berth vacant at chart can still be bought for a single intermediate segment online, or only at the counter.
+Non-functional requirements
+The system fetches each train's chart once per chart event and fans the result out to every watcher, so load grows with trains watched, not users.
+Area
+Requirement
+Latency
+Plan on screen in under 3 s (p95); alert within 5 min of chart publication (p95).
+Fetch budget
+Poll only within 30 min either side of the expected chart time, every 2 min, then stop. One shared fetch per train per chart stage.
+Availability
+99.5% during chart windows; most evening departures chart between 04:00 and 14:00, morning departures at 20:00.
+Freshness
+Every plan shows chart stage (first or second) and its age; plans older than 15 min show a recheck prompt.
+Client
+Mobile-first PWA, usable on 3G, first load under 300 KB. Installable for push.
+Security
+PII encrypted at rest; no credentials stored; PNRs purged 7 days after travel.
+Observability
+Track chart-detect delay, plan accuracy ("berth gone" reports), and per-leg booking drop-off.
+Suggested architecture: a scheduler that computes chart times, a rate-limited fetcher with a shared cache, a stateless plan engine, a notifier (push, WhatsApp, email), and the PWA. Go suits the fetcher and engine; Postgres and Redis cover state and queues.
+Risks and open questions
+Data access and stale plans are the two risks that can sink the product; everything else is manageable.
+Risk
+Likelihood
+Impact
+Mitigation
+Chart data blocked or a legal notice
+High
+High
+Partnership first; closed beta only until cleared; kill switch on the fetcher.
+Plan goes stale: someone books the berth first
+High
+Medium
+Recheck right before alerting; show chart age; book the scarcest leg first.
+Too few segment gaps on target corridors
+Medium
+High
+Pilot measures supply before scaling; vacancy score sets expectations.
+Rules change again (chart timing moved twice in 2025: July and December)
+High
+Medium
+Detect the chart instead of trusting a schedule; chart slots in config.
+GapSeat adds alerts and corridor search
+Medium
+Medium
+Ship corridor search and booking handoff first; historical vacancy data becomes the moat.
+IRCTC adds stitching to its own app
+Medium
+High
+Stay the cross-train, cross-class planner; IRCTC works one train at a time.
+A user boards on a waitlisted ticket citing the app
+Low
+Medium
+Every plan says it is not a ticket until each leg is booked.
+Open questions:
+[ ] Will IRCTC or CRIS license chart vacancy data, and who is the contact?
+[ ] Online current booking from an intermediate station: cut-off and availability rules?
+[ ] How many usable segment gaps per train on the top 30 corridors? (pilot)
+[ ] Source for PNR lookups?
+[ ] Business model: free, a fee per confirmed journey, or B2B data?
+Rollout plan
+Four phases, each opened only when the previous gate is met. Durations are estimates for a small team.
+1.  Validate (2 weeks). Get a legal opinion and open talks with IRCTC and CRIS. Record charts for 20 trains on 3 corridors (Mumbai to Ahmedabad, Mumbai to Delhi, Mumbai to Pune) for 14 days.
+    ◦ Gate: on the median train, a typical waitlisted query gets a plan with at most 1 switch.
+2.  Closed beta (6 weeks). Ship F1 to F8 as a PWA to 200 invited users on the 3 corridors.
+    ◦ Gate: alert p95 under 5 min, plan accuracy 90% or more, all-legs-booked conversion 25% or more.
+3.  Public beta (8 weeks). Add F9 to F15 and WhatsApp alerts; extend to the top 30 corridors.
+    ◦ Gate: data route cleared by a lawyer; 30-day repeat use 30% or more.
+4.  Scale. In-app booking through a partner and regional languages (F16, F17).
+Appendix: the original brief, polished
+Your brief, kept close to its structure and wording with the facts corrected. The sections above supersede it.
+Product: a web app that shows which seats are still available on a train after the reservation chart is prepared.
+Problem: When a passenger wants to travel from A to B and no confirmed seats are left, booking sites offer only a waitlist. A waitlisted ticket no longer allows travel in a reserved coach, so in practice the passenger has no option. Yet trains rarely run full end to end. Passengers board and alight at different stations, unused quotas are released at chart time, and some tickets are cancelled before it. Many berths are therefore free for part of the route. By moving between berths at intermediate stations, a passenger can often get a seat for the whole journey or most of it, and Railways fills capacity that would otherwise run empty.
+Solution: Once the first chart is published (about 10 hours before departure, or by 20:00 the previous day for trains leaving 05:01 to 14:00), read the train's vacancy data from IRCTC's Charts/Vacancy page. The user enters train number, date, boarding station and destination. The app returns, in order of preference:
+1.  A single berth vacant for the whole journey, with coach and berth number.
+2.  Otherwise, the combination of berths that covers the whole journey with the fewest switches.
+3.  Otherwise, a plan that gets as close to the destination as possible.
+The passenger books each berth through IRCTC current booking before the second chart, prepared 30 to 5 minutes before departure. Late changes appear only in the second chart, so the app checks it again.
