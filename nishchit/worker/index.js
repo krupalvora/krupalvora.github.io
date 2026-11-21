@@ -74,8 +74,9 @@ export default {
     const text = await upstream.text();
     const status = upstream.status;
 
-    if (isBlock(status, text)) {
-      const info = { status, reference: akamaiReference(text), at: new Date().toISOString() };
+    const blockReason = whyBlocked(status, text);
+    if (blockReason) {
+      const info = { status, reason: blockReason, reference: akamaiReference(text), at: new Date().toISOString() };
       const write = cache.put('v1:blocked', info, BLOCK_BACKOFF_S);
       ctx.waitUntil ? ctx.waitUntil(write) : await write;
       return blockedResponse(info, cors, false);
@@ -120,10 +121,16 @@ function validate(name, b) {
   return out;
 }
 
-/** 401/403/429, or Akamai's "Access Denied" page, means IRCTC is refusing this server. */
-function isBlock(status, text) {
-  if (status === 401 || status === 403 || status === 429) return true;
-  return /<title>\s*Access Denied/i.test(text);
+/**
+ * Why IRCTC is refusing this server, or null. 520 is Cloudflare's code for "the origin closed
+ * the connection without a valid reply" — how IRCTC's Akamai edge silently drops servers.
+ */
+function whyBlocked(status, text) {
+  if (status === 401 || status === 403) return `IRCTC refused the request (HTTP ${status})`;
+  if (status === 429) return 'IRCTC is rate-limiting this server (HTTP 429)';
+  if (status === 520) return 'IRCTC closed the connection without answering (Cloudflare 520), which is how its bot protection refuses servers';
+  if (/<title>\s*Access Denied/i.test(text)) return `IRCTC returned its "Access Denied" page (HTTP ${status})`;
+  return null;
 }
 
 function akamaiReference(text) {
@@ -138,6 +145,7 @@ function blockedResponse(info, cors, fromBackoff) {
       blocked: true,
       error: 'IRCTC is blocking requests from Nishchit\'s server right now.',
       upstreamStatus: info.status,
+      reason: info.reason,
       reference: info.reference,
       since: info.at,
       retryAfterSeconds: BLOCK_BACKOFF_S,

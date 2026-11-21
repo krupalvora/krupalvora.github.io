@@ -68,3 +68,13 @@ test('worker: rejects unknown paths and bad input without calling IRCTC', async 
   assert.equal((await worker.fetch(req('/online-charts/api/trainComposition', null, 'GET'), env)).status, 405);
   assert.equal(calls.length, 0);
 });
+
+test('worker: Cloudflare 520 (IRCTC hung up) is reported as a block with the reason', async () => {
+  const env = { CACHE: memKV(), UPSTREAM_FETCH: upstream(520, '') };
+  const res = await worker.fetch(req('/eticketing/protected/mapps1/trnscheduleenquiry/19017'), env);
+  const body = await res.json();
+  assert.equal(res.status, 503);
+  assert.equal(body.blocked, true);
+  assert.equal(body.upstreamStatus, 520);
+  assert.match(body.reason, /closed the connection/);
+});

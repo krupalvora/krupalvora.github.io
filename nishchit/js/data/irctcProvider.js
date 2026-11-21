@@ -203,7 +203,7 @@ export class IrctcProvider {
         throw new ProviderError("IRCTC is blocking Nishchit's server right now, so the live chart can't be fetched.", 'blocked', meta({
           status: blocked.upstreamStatus ?? status,
           detail: [
-            `IRCTC answered HTTP ${blocked.upstreamStatus ?? '?'}`,
+            blocked.reason ?? `IRCTC answered HTTP ${blocked.upstreamStatus ?? '?'}`,
             blocked.reference ? `Akamai reference #${blocked.reference}` : null,
             blocked.since ? `blocked since ${blocked.since}` : null,
           ].filter(Boolean).join(', '),
