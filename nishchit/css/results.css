@@ -564,3 +564,43 @@
   font-weight: 500;
   color: var(--ink-2);
 }
+
+.state-card__hint {
+  font-weight: 600;
+}
+
+.state-card__details {
+  margin-top: var(--s-2, 8px);
+  font-size: 13px;
+}
+.state-card__details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.state-card__details dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 8px 0;
+}
+.state-card__details dt {
+  color: var(--ink-2);
+}
+.state-card__details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.setup-card__steps {
+  margin: 4px 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--warn-ink);
+}
+.setup-card a {
+  color: inherit;
+  font-weight: 600;
+}

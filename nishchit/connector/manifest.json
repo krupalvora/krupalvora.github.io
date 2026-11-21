@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Nishchit Connector",
+  "version": "1.0.0",
+  "description": "Lets Nishchit read the IRCTC reservation chart through your own browser session.",
+  "minimum_chrome_version": "111",
+  "permissions": [
+    "scripting",
+    "cookies",
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.irctc.co.in/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://krupalvora.github.io/nishchit/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "Demo timetables for V1. Times and distances are illustrative, not official.",
+  "note": "Test fixtures only. Times and distances are illustrative, not official.",
   "trains": [
     { "number": "19017", "name": "LOKSHAKTI EXP" },
     { "number": "12901", "name": "GUJARAT MAIL" },

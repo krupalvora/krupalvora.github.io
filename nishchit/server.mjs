@@ -160,6 +160,12 @@ async function serveStatic(req, res) {
 let session = { get: () => '', refresh: async () => '', close() {} };
 
 const server = createServer(async (req, res) => {
+  // Lets the page tell server.mjs (a real proxy) apart from a plain static server.
+  if (req.url === '/__nishchit/health') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ proxy: true, session: Boolean(session.get()) }));
+    return;
+  }
   if (PROXY_PREFIXES.some((p) => req.url.startsWith(p))) return proxy(req, res, session);
   return serveStatic(req, res);
 });

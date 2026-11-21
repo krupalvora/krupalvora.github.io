@@ -6,12 +6,12 @@ import { normalizeRoute } from '../js/domain/route.js';
 import { berthType, spanStatus } from '../js/domain/berths.js';
 import { estimateFare } from '../js/domain/fare.js';
 import { fromISODate, toISODate } from '../js/domain/time.js';
-import { simulateChart } from '../js/data/simulator.js';
+import { simulateChart } from './fixtures/simulator.js';
 import { buildSearchResult } from '../js/app/search.js';
 import { queryFromParams, queryToParams } from '../js/state/query.js';
 
 const loadTrain = (n) => {
-  const raw = JSON.parse(readFileSync(new URL(`../data/trains/${n}.json`, import.meta.url)));
+  const raw = JSON.parse(readFileSync(new URL(`./fixtures/trains/${n}.json`, import.meta.url)));
   return { ...raw, route: normalizeRoute(raw.route) };
 };
 

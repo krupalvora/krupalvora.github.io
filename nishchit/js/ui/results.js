@@ -10,6 +10,18 @@ const STAGE_LABEL = {
   [CHART_STAGES.DEPARTED]: 'Train departed',
 };
 
+const ERROR_TITLE = {
+  'no-source': 'Not connected to IRCTC',
+  'not-found': 'Train not found',
+  'no-chart': 'No chart yet',
+  forbidden: 'IRCTC blocked the request',
+  timeout: 'IRCTC is not responding',
+  network: 'Network problem',
+  connector: 'Connector problem',
+  parse: 'Unexpected response from IRCTC',
+  upstream: 'IRCTC returned an error',
+};
+
 const RISK_LABEL = { 'short-halt': 'Short halt', night: 'Night switch' };
 
 /** Results view: a status hero, journey plans, then every berth vacant on the trip. */
@@ -31,9 +43,70 @@ export function createResultsView({ root }) {
     );
   }
 
-  function renderError(message) {
+  /** The real reason, what to do, and the technical facts to copy into a bug report. */
+  function renderError(err) {
     root.setAttribute('aria-busy', 'false');
-    show(h('div', { class: 'state-card state-card--error', role: 'alert' }, h('h2', {}, 'Something went wrong'), h('p', {}, message)));
+    const message = err?.message || String(err ?? 'Unknown error');
+    const diagnostics = typeof err?.diagnostics === 'function' ? err.diagnostics() : [['Error', `${err?.name ?? 'Error'}: ${message}`]];
+    const report = [`Nishchit error: ${message}`, ...diagnostics.map(([k, v]) => `${k}: ${v}`), `Page: ${location.href}`, `Browser: ${navigator.userAgent}`].join('\n');
+    const copyBtn = h(
+      'button',
+      {
+        type: 'button',
+        class: 'btn btn--ghost btn--sm',
+        onclick: async () => {
+          try {
+            await navigator.clipboard.writeText(report);
+            copyBtn.lastChild.textContent = 'Copied';
+          } catch {
+            copyBtn.lastChild.textContent = 'Copy failed — select the text above';
+          }
+        },
+      },
+      icon('copy'),
+      h('span', {}, 'Copy details'),
+    );
+    show(
+      h(
+        'div',
+        { class: 'state-card state-card--error', role: 'alert' },
+        h('h2', {}, ERROR_TITLE[err?.code] ?? 'Something went wrong'),
+        h('p', {}, message),
+        err?.hint ? h('p', { class: 'state-card__hint' }, err.hint) : null,
+        h(
+          'details',
+          { class: 'state-card__details' },
+          h('summary', {}, 'Technical details'),
+          h('dl', {}, diagnostics.map(([k, v]) => [h('dt', {}, k), h('dd', { class: 'mono' }, String(v))])),
+          copyBtn,
+        ),
+      ),
+    );
+  }
+
+  /** Shown when nothing can reach IRCTC: how to install the browser connector. */
+  function renderSetup({ downloadUrl, chartsUrl }) {
+    root.setAttribute('aria-busy', 'false');
+    show(
+      h(
+        'div',
+        { class: 'state-card state-card--warn setup-card' },
+        h('h2', {}, 'Connect Nishchit to IRCTC'),
+        h(
+          'p',
+          {},
+          'Nishchit reads the live reservation chart from IRCTC using your own browser, so your requests go to IRCTC from your own connection, exactly as if you opened the chart yourself. That needs the small Nishchit Connector extension (Chrome, Edge or Brave).',
+        ),
+        h(
+          'ol',
+          { class: 'setup-card__steps' },
+          h('li', {}, h('a', { href: downloadUrl, download: '' }, 'Download the connector'), ' and unzip it.'),
+          h('li', {}, 'Open ', h('span', { class: 'mono' }, 'chrome://extensions'), ', turn on Developer mode, click "Load unpacked" and pick the unzipped folder.'),
+          h('li', {}, 'Reload this page. On the first search the connector opens ', h('a', { href: chartsUrl, target: '_blank', rel: 'noopener' }, 'IRCTC online charts'), ' in a background tab.'),
+        ),
+        h('p', {}, 'The connector only talks to www.irctc.co.in, only for the three chart and schedule requests Nishchit needs, and only when this page asks.'),
+      ),
+    );
   }
 
   function render(r) {
@@ -42,6 +115,7 @@ export function createResultsView({ root }) {
       header(r),
       statusHero(r),
       stageNote(r),
+      warningsNote(r),
       h('h2', { class: 'section-title' }, 'journey plans'),
       plans(r),
       h('h2', { class: 'section-title' }, `vacant berths (${r.seats.length})`),
@@ -55,7 +129,7 @@ export function createResultsView({ root }) {
     replaceChildren(root);
   }
 
-  return { render, renderLoading, renderError, hide };
+  return { render, renderLoading, renderError, renderSetup, hide };
 }
 
 /* ------------------------------ header ------------------------------ */
@@ -74,7 +148,7 @@ function header(r) {
         'p',
         { class: 'results-head__meta' },
         `${formatDay(fromISODate(query.date))} · ${plural(query.party, 'traveller')} · ${query.cls === 'all' ? 'All classes' : classLabel(query.cls)} · `,
-        h('span', { class: `pill ${r.source === 'simulated' ? 'pill--muted' : 'pill--ok'}` }, r.source === 'simulated' ? 'Simulated' : 'Live'),
+        h('span', { class: 'pill pill--ok', title: `Fetched ${r.fetchedAt?.toLocaleTimeString?.() ?? ''}` }, r.via === 'proxy' ? 'Live · proxy' : 'Live IRCTC'),
       ),
     ),
     h('div', { class: 'stat-tiles' }, statTile(r.totals.full, 'full'), statTile(r.totals.partial, 'partial')),
@@ -123,12 +197,23 @@ function statusHero(r) {
 function stageNote(r) {
   const s = r.schedule;
   const msg = {
-    [CHART_STAGES.NOT_PREPARED]: `Chart expected ${formatDateTime(s.firstChart)}.${r.source === 'simulated' ? ' Showing simulated data.' : ''}`,
+    [CHART_STAGES.NOT_PREPARED]: `Chart expected ${formatDateTime(s.firstChart)}.`,
     [CHART_STAGES.FIRST]: `Book each leg via IRCTC current booking before the second chart at ${formatDateTime(s.secondChart)}.`,
     [CHART_STAGES.SECOND]: `Second chart is out. Train leaves source at ${formatDateTime(s.departure)}.`,
     [CHART_STAGES.DEPARTED]: 'Train has left its source. Show these berths to the TTE on board.',
   }[r.stage];
   return h('p', { class: 'banner' }, icon('clock'), h('span', {}, h('strong', {}, `${STAGE_LABEL[r.stage]}. `), msg));
+}
+
+/** Partial data must be visible: e.g. a coach IRCTC didn't return. */
+function warningsNote(r) {
+  if (!r.warnings?.length) return null;
+  return h(
+    'div',
+    { class: 'state-card state-card--warn', role: 'status' },
+    h('h3', {}, 'Some of the chart is missing'),
+    r.warnings.map((w) => h('p', {}, w)),
+  );
 }
 
 /* ------------------------------- plans ------------------------------ */

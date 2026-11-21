@@ -4,19 +4,22 @@ import { assembleChart, parseCoachComposition, parseTrainComposition } from './i
 import { ProviderError } from './provider.js';
 
 /**
- * Live IRCTC data provider. Same contract as StaticProvider (getTrain / getChart).
+ * Live IRCTC data provider (getTrain / getChart).
  *
- * IMPORTANT: `base` must be a proxy YOU control, not www.irctc.co.in directly. A browser on a
- * different origin cannot read IRCTC's responses (its CORS header allows only IRCTC's own
- * origins), and every IRCTC call needs a live Akamai session (the _abck / bm_* cookies and
- * greq / bmirak headers). The proxy holds that session and re-exposes clean JSON on your
- * origin. See README for a minimal proxy.
+ * The transport is injected as `fetchFn` + `base`:
+ *   - via 'connector': connectorFetch, base https://www.irctc.co.in/ — requests run inside an
+ *     IRCTC tab in the USER's browser (extension in /connector). Production path.
+ *   - via 'proxy': window.fetch, base = a proxy you run (server.mjs on localhost) that holds
+ *     the IRCTC session. Dev path.
+ * A page cannot call IRCTC directly: IRCTC's CORS allows only its own origins and every call
+ * needs a live Akamai session (_abck / bm_* cookies, greq / bmirak headers).
  */
 export class IrctcProvider {
-  constructor({ base, endpoints, coachGapMs = 0, maxRetries = 2, fetchFn = globalThis.fetch.bind(globalThis) }) {
-    if (!base) throw new Error('IrctcProvider needs a proxy base URL (CONFIG.live.base).');
+  constructor({ base, endpoints, via = 'proxy', coachGapMs = 0, maxRetries = 2, fetchFn = globalThis.fetch.bind(globalThis) }) {
+    if (!base) throw new Error('IrctcProvider needs a base URL.');
     this.base = base.endsWith('/') ? base : `${base}/`;
     this.endpoints = endpoints;
+    this.via = via;
     this.coachGapMs = coachGapMs;
     this.maxRetries = maxRetries;
     this.fetchFn = fetchFn;
@@ -31,11 +34,20 @@ export class IrctcProvider {
     const url = this.url(this.endpoints.schedule, { train: number });
     const raw = await this.getJson(url, signal, `train ${number}`);
     if (raw === null) return null; // 404 = unknown train
+    const irctcError = raw?.errorMessage || raw?.error;
+    if (irctcError) {
+      throw new ProviderError(`IRCTC: ${irctcError}`, 'upstream', { endpoint: url.pathname, via: this.via, detail: String(irctcError) });
+    }
     let train;
     try {
       train = mapSchedule(raw);
     } catch (err) {
-      throw new ProviderError(`IRCTC schedule for ${number} could not be read: ${err.message}`, 'parse');
+      throw new ProviderError(`IRCTC's schedule for train ${number} is in a format Nishchit doesn't understand.`, 'parse', {
+        endpoint: url.pathname,
+        via: this.via,
+        detail: err.message,
+        cause: err,
+      });
     }
     this.trainCache.set(number, train);
     return train;
@@ -63,14 +75,36 @@ export class IrctcProvider {
       signal,
       `composition for ${train.number}`,
     );
+    const compEndpoint = `POST /${this.endpoints.trainComposition}`;
+    if (compRaw === null) {
+      throw new ProviderError(`IRCTC has no chart for train ${train.number} on ${date}.`, 'no-chart', {
+        status: 404,
+        endpoint: compEndpoint,
+        via: this.via,
+        hint: 'Check the date: the train may not run that day.',
+      });
+    }
+    if (compRaw?.error) {
+      // IRCTC answers 200 with { error: "..." } for "chart not prepared", "train not running", etc.
+      throw new ProviderError(`IRCTC: ${compRaw.error}`, 'no-chart', { endpoint: compEndpoint, via: this.via, detail: String(compRaw.error) });
+    }
     let composition;
     try {
       composition = parseTrainComposition(compRaw);
     } catch (err) {
-      throw new ProviderError(err.message, 'parse');
+      throw new ProviderError(`IRCTC's chart for train ${train.number} is in a format Nishchit doesn't understand.`, 'parse', {
+        endpoint: compEndpoint,
+        via: this.via,
+        detail: err.message,
+        cause: err,
+      });
     }
     if (!composition.prepared || !composition.coaches.length) {
-      throw new ProviderError('Chart not prepared yet for this train and date.', 'no-chart');
+      throw new ProviderError(`IRCTC has not prepared the reservation chart for train ${train.number} on ${date} yet.`, 'no-chart', {
+        endpoint: compEndpoint,
+        via: this.via,
+        hint: 'The first chart is usually out about 4 hours before departure from the source station.',
+      });
     }
 
     const source = composition.source ?? boarding;
@@ -81,6 +115,7 @@ export class IrctcProvider {
     const wanted = composition.coaches.filter((c) => CLASSES[c.cls] && (!classes || classes.includes(c.cls)));
 
     const coachCharts = new Map();
+    const warnings = [];
     for (const [i, coach] of wanted.entries()) {
       if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
       if (i > 0 && this.coachGapMs) await delay(this.coachGapMs, signal);
@@ -98,10 +133,19 @@ export class IrctcProvider {
         signal,
         `coach ${coach.coach}`,
       );
+      // One coach failing should not sink the whole chart, but the user must know it's missing.
+      if (raw === null || raw?.error) warnings.push(`Coach ${coach.coach}: ${raw?.error ?? 'IRCTC returned no data'} — its berths are not shown.`);
       coachCharts.set(coach.coach, parseCoachComposition(raw));
     }
+    if (wanted.length && warnings.length === wanted.length) {
+      throw new ProviderError(`IRCTC returned no berth data for any coach of train ${train.number}.`, 'upstream', {
+        endpoint: `POST /${this.endpoints.coachComposition}`,
+        via: this.via,
+        detail: warnings.join('\n'),
+      });
+    }
 
-    const chart = assembleChart(composition, coachCharts, train.route);
+    const chart = { ...assembleChart(composition, coachCharts, train.route), via: this.via, warnings };
     if (chart.composition.length) train.composition = chart.composition;
     if (chart.classes.length) train.classes = chart.classes;
     this.chartCache.set(key, chart);
@@ -121,10 +165,16 @@ export class IrctcProvider {
     return this.send(this.url(template), { method: 'POST', body: JSON.stringify(body) }, signal, what);
   }
 
+  /**
+   * One IRCTC call. Retries 502/503/504 (IRCTC is slow and its Akamai edge times out) a
+   * couple of times; every other failure becomes a ProviderError carrying what really
+   * happened — status, endpoint, IRCTC's own message / Akamai reference — never a guess.
+   */
   async send(url, init, signal, what) {
-    // IRCTC's endpoints are slow and occasionally return 502/503/504; retry those a couple of
-    // times with a short backoff before giving up.
     const RETRY_STATUS = new Set([502, 503, 504]);
+    const endpoint = `${init.method} ${url.pathname}`;
+    const via = this.via;
+    const meta = (extra) => ({ endpoint, via, ...extra });
     let lastErr;
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
       if (attempt > 0) await delay(400 * attempt, signal);
@@ -142,25 +192,84 @@ export class IrctcProvider {
           },
         });
       } catch (err) {
-        if (err.name === 'AbortError') throw err;
-        lastErr = new ProviderError(`Could not reach the data proxy for ${what}. Is CONFIG.live.base correct and running?`, 'network');
+        if (err?.name === 'AbortError') throw err;
+        if (err?.name === 'ConnectorError') {
+          throw new ProviderError(`The Nishchit Connector could not reach IRCTC for ${what}.`, 'connector', meta({
+            detail: err.message,
+            hint: 'Check that the extension is enabled and that https://www.irctc.co.in/online-charts opens in this browser.',
+            cause: err,
+          }));
+        }
+        lastErr = new ProviderError(`Could not reach ${via === 'proxy' ? 'the local proxy' : 'IRCTC'} for ${what}.`, 'network', meta({
+          hint: via === 'proxy' ? 'Is server.mjs running?' : 'Check your internet connection and try again.',
+          cause: err,
+        }));
         continue;
       }
-      if (res.status === 404) return null;
-      if (res.status === 403) throw new ProviderError('IRCTC refused the request (session expired on the proxy).', 'forbidden');
-      if (RETRY_STATUS.has(res.status)) {
-        lastErr = new ProviderError(`IRCTC timed out (${res.status}) for ${what}.`, 'timeout');
+
+      const text = await res.text().catch(() => '');
+      const status = res.status;
+      if (status === 404) return null;
+      if (RETRY_STATUS.has(status)) {
+        lastErr = new ProviderError(`IRCTC did not respond in time for ${what} (HTTP ${status}).`, 'timeout', meta({
+          status,
+          detail: describeBody(text),
+          hint: 'IRCTC is overloaded right now. Wait a minute and search again.',
+        }));
         continue;
       }
-      if (!res.ok) throw new ProviderError(`Proxy returned ${res.status} for ${what}.`, 'network');
+      if (status === 403 || status === 401) {
+        throw new ProviderError(`IRCTC refused the request for ${what} (HTTP ${status}).`, 'forbidden', meta({
+          status,
+          detail: describeBody(text),
+          hint:
+            via === 'proxy'
+              ? 'The IRCTC session on the proxy has expired. Refresh the cookie (or use npm run serve:auto) and retry.'
+              : 'Open https://www.irctc.co.in/online-charts in this browser, complete any check IRCTC shows, then search again.',
+        }));
+      }
+      if (status === 429) {
+        throw new ProviderError(`IRCTC is rate-limiting requests for ${what} (HTTP 429).`, 'upstream', meta({
+          status,
+          detail: describeBody(text),
+          hint: 'Wait a few minutes before searching again.',
+        }));
+      }
+      if (status < 200 || status >= 300) {
+        throw new ProviderError(`IRCTC returned an error for ${what} (HTTP ${status}).`, 'upstream', meta({ status, detail: describeBody(text) }));
+      }
       try {
-        return await res.json();
-      } catch {
-        throw new ProviderError(`Proxy did not return JSON for ${what}.`, 'parse');
+        return JSON.parse(text);
+      } catch (err) {
+        throw new ProviderError(`IRCTC sent a response for ${what} that is not data (likely an error page).`, 'parse', meta({
+          status,
+          detail: describeBody(text),
+          cause: err,
+        }));
       }
     }
     throw lastErr;
   }
+}
+
+/**
+ * Best human-readable summary of an IRCTC response body: its JSON error field, the Akamai
+ * edge reference (needed to quote to IRCTC), or a short excerpt of the text.
+ */
+export function describeBody(text) {
+  if (!text) return '';
+  try {
+    const json = JSON.parse(text);
+    const msg = json?.error || json?.errorMessage || json?.message || json?.errorMsg;
+    if (msg) return String(msg);
+  } catch {
+    /* not JSON */
+  }
+  const decoded = text.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+  const ref = /Reference\s*#\s*([\w.]+)/i.exec(decoded);
+  const plain = decoded.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (ref) return `Akamai edge error, reference #${ref[1]}${/access denied/i.test(plain) ? ' (Access Denied)' : ''}`;
+  return plain.length > 240 ? `${plain.slice(0, 240)}…` : plain;
 }
 
 function delay(ms, signal) {

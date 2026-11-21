@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { normalizeRoute } from '../js/domain/route.js';
 import { mapSchedule } from '../js/data/irctc/mapSchedule.js';
 import { assembleChart, buildBerths, parseCoachComposition, parseTrainComposition } from '../js/data/irctc/mapChart.js';
-import { IrctcProvider } from '../js/data/irctcProvider.js';
+import { IrctcProvider, describeBody } from '../js/data/irctcProvider.js';
+
+const jsonRes = (json, status = 200) => ({ ok: status < 300, status, text: async () => JSON.stringify(json), json: async () => json });
+const textRes = (text, status) => ({ ok: status < 300, status, text: async () => text });
 import { buildSearchResult } from '../js/app/search.js';
 
 /**
@@ -170,7 +173,7 @@ test('IrctcProvider runs the real two-call flow and skips unmodelled classes', a
           from: 'A', remote: 'A', chartOneDate: '2026-11-21 09:00:00', chartStatusResponseDto: { chartOneFlag: 3 },
         }
       : { coachName: 'B1', bdd: [{ berthNo: 1, berthCode: 'L', enable: true, bsd: [{ from: 'A', to: 'D', occupancy: false }] }] };
-    return { ok: true, status: 200, json: async () => json };
+    return jsonRes(json);
   };
   const provider = new IrctcProvider({
     base: 'https://proxy.example/',
@@ -195,7 +198,7 @@ test('IrctcProvider surfaces "not prepared" as a clear error', async () => {
   const provider = new IrctcProvider({
     base: 'https://proxy.example/',
     endpoints: { trainComposition: 't', coachComposition: 'c' },
-    fetchFn: async () => ({ ok: true, status: 200, json: async () => ({ cdd: [], chartOneDate: null, chartStatusResponseDto: { chartOneFlag: 0 } }) }),
+    fetchFn: async () => jsonRes({ cdd: [], chartOneDate: null, chartStatusResponseDto: { chartOneFlag: 0 } }),
   });
   await assert.rejects(provider.getChart({ train: { number: '1', route: route4() }, date: '2026-11-21' }), /not prepared/i);
 });
@@ -228,7 +231,7 @@ test('end-to-end live pipeline: schedule + chart endpoints -> a bookable plan', 
   const fetchFn = async (url) => {
     const s = String(url);
     const json = s.includes('trnscheduleenquiry') ? schedule : s.endsWith('/trainComposition') ? trainComp : coachComp;
-    return { ok: true, status: 200, json: async () => json };
+    return jsonRes(json);
   };
   const provider = new IrctcProvider({
     base: 'https://proxy.example/',
@@ -257,4 +260,89 @@ test('end-to-end live pipeline: schedule + chart endpoints -> a bookable plan', 
   assert.equal(result.plans[0].legs[0].berths[0].id, 'B1-1');
   assert.equal(result.totals.full, 1);                 // B1-1 vacant whole trip
   assert.equal(result.totals.partial, 1);              // B1-2 vacant part of trip
+});
+
+/* ------------------------- authentic error reporting ------------------------- */
+
+const provider = (fetchFn, via = 'connector') =>
+  new IrctcProvider({
+    base: 'https://www.irctc.co.in/',
+    via,
+    maxRetries: 1,
+    endpoints: { schedule: 'eticketing/protected/mapps1/trnscheduleenquiry/{train}', trainComposition: 'online-charts/api/trainComposition', coachComposition: 'online-charts/api/coachComposition' },
+    fetchFn,
+  });
+
+const AKAMAI_504 = `<HTML><HEAD><TITLE>Error</TITLE></HEAD><BODY>
+An error occurred while processing your request.<p>
+Reference&#32;&#35;221&#46;36adce17&#46;1795278851&#46;e1cc8f5
+</BODY></HTML>`;
+
+test('describeBody extracts IRCTC messages and Akamai references', () => {
+  assert.equal(describeBody('{"error":"Chart Not Prepared"}'), 'Chart Not Prepared');
+  assert.equal(describeBody('{"errorMessage":"Invalid train"}'), 'Invalid train');
+  assert.equal(describeBody(AKAMAI_504), 'Akamai edge error, reference #221.36adce17.1795278851.e1cc8f5');
+  assert.equal(describeBody(''), '');
+});
+
+test('504 from Akamai is retried, then reported with status, endpoint and reference', async () => {
+  let calls = 0;
+  const p = provider(async () => (calls++, textRes(AKAMAI_504, 504)));
+  const err = await p.getTrain('19017').catch((e) => e);
+  assert.equal(calls, 2); // 1 + maxRetries
+  assert.equal(err.code, 'timeout');
+  assert.equal(err.status, 504);
+  assert.equal(err.endpoint, 'GET /eticketing/protected/mapps1/trnscheduleenquiry/19017');
+  assert.match(err.detail, /reference #221\.36adce17/);
+  assert.match(err.message, /HTTP 504/);
+});
+
+test('403 tells the user what to do for their transport', async () => {
+  const viaConnector = await provider(async () => textRes('Access Denied', 403)).getTrain('19017').catch((e) => e);
+  assert.equal(viaConnector.code, 'forbidden');
+  assert.match(viaConnector.hint, /online-charts in this browser/);
+  const viaProxy = await provider(async () => textRes('Access Denied', 403), 'proxy').getTrain('19017').catch((e) => e);
+  assert.match(viaProxy.hint, /proxy has expired/);
+});
+
+test('connector failures keep the extension\'s own message', async () => {
+  const p = provider(async () => {
+    const e = new Error('IRCTC did not start a session in this browser');
+    e.name = 'ConnectorError';
+    throw e;
+  });
+  const err = await p.getTrain('19017').catch((e) => e);
+  assert.equal(err.code, 'connector');
+  assert.equal(err.detail, 'IRCTC did not start a session in this browser');
+  assert.ok(err.diagnostics().some(([k]) => k === 'Route'));
+});
+
+test('IRCTC error field on trainComposition is shown verbatim', async () => {
+  const p = provider(async () => jsonRes({ error: 'Train is not running on this date' }));
+  const err = await p.getChart({ train: { number: '19017', route: route4() }, date: '2026-11-21' }).catch((e) => e);
+  assert.equal(err.code, 'no-chart');
+  assert.equal(err.message, 'IRCTC: Train is not running on this date');
+});
+
+test('HTML error page instead of JSON is a parse error with the page text', async () => {
+  const err = await provider(async () => textRes('<html><body>Service Unavailable - maintenance</body></html>', 200)).getTrain('19017').catch((e) => e);
+  assert.equal(err.code, 'parse');
+  assert.match(err.detail, /maintenance/);
+});
+
+test('a coach IRCTC fails to return becomes a visible warning, not silent data loss', async () => {
+  const p = provider(async (url, init) => {
+    if (String(url).endsWith('/trainComposition')) {
+      return jsonRes({ cdd: [{ coachName: 'B1', classCode: '3A' }, { coachName: 'B2', classCode: '3A' }], from: 'A', remote: 'A', chartOneDate: 'x' });
+    }
+    const coach = JSON.parse(init.body).coach;
+    return coach === 'B2'
+      ? jsonRes({ error: 'Coach data unavailable' })
+      : jsonRes({ bdd: [{ berthNo: 1, berthCode: 'L', bsd: [{ from: 'A', to: 'D', occupancy: false }] }] });
+  });
+  p.coachGapMs = 0;
+  const chart = await p.getChart({ train: { number: '19017', route: route4() }, date: '2026-11-21' });
+  assert.equal(chart.berths.length, 1);
+  assert.equal(chart.via, 'connector');
+  assert.deepEqual(chart.warnings, ['Coach B2: Coach data unavailable — its berths are not shown.']);
 });

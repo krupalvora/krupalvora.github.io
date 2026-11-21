@@ -8,14 +8,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { planJourney } from '../js/domain/engine.js';
 import { normalizeRoute } from '../js/domain/route.js';
-import { simulateChart } from '../js/data/simulator.js';
+import { simulateChart } from './fixtures/simulator.js';
 
 const TRAINS = ['19017', '12901', '12933'];
 const DATES = ['2026-11-20', '2026-11-21', '2026-11-22'];
 const MAX_LEGS = 3;
 
 function loadTrain(n) {
-  const raw = JSON.parse(readFileSync(new URL(`../data/trains/${n}.json`, import.meta.url)));
+  const raw = JSON.parse(readFileSync(new URL(`./fixtures/trains/${n}.json`, import.meta.url)));
   return { ...raw, route: normalizeRoute(raw.route) };
 }
 

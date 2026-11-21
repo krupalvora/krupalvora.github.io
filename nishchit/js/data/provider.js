@@ -1,6 +1,3 @@
-import { normalizeRoute } from '../domain/route.js';
-import { simulateChart } from './simulator.js';
-
 /**
  * VacancyProvider contract — every data source implements these two methods, so the UI
  * and engine never know where data comes from.
@@ -8,61 +5,71 @@ import { simulateChart } from './simulator.js';
  *   getTrain(number, { signal }) -> Promise<Train|null>
  *     Train = { number, name, classes, composition, route (normalized) }
  *
- *   getChart({ train, date, signal }) -> Promise<Chart>
- *     Chart = { berths, source: 'simulated'|'live', fetchedAt: Date }
+ *   getChart({ train, date, classes, signal }) -> Promise<Chart>
+ *     Chart = { berths, source: 'live', via, fetchedAt: Date, warnings: string[] }
  *
- * V1 ships StaticProvider (GitHub Pages: static JSON timetables + simulated chart).
- * A future provider can call a licensed feed or a backend proxy with the same contract.
+ * The only implementation is IrctcProvider (real IRCTC data). There is no simulated or demo
+ * fallback: if IRCTC can't be reached, the user sees exactly why.
  */
 
+/**
+ * An error the user should see as-is. `message` is written for the traveller; the other
+ * fields are the technical facts a developer needs to debug it (shown under "Technical
+ * details" and logged to the console).
+ */
 export class ProviderError extends Error {
-  constructor(message, code) {
-    super(message);
+  /**
+   * @param {string} message plain-language explanation for the user
+   * @param {string} code    stable machine code: no-source | network | forbidden | timeout |
+   *                         upstream | parse | no-chart | connector
+   * @param {object} [info]
+   * @param {string} [info.hint]     what the user can do about it
+   * @param {number} [info.status]   HTTP status from IRCTC / the proxy
+   * @param {string} [info.endpoint] request path that failed
+   * @param {string} [info.via]      transport: 'connector' | 'proxy'
+   * @param {string} [info.detail]   raw upstream text (IRCTC message, Akamai reference, body excerpt)
+   * @param {unknown} [info.cause]
+   */
+  constructor(message, code, { hint, status, endpoint, via, detail, cause } = {}) {
+    super(message, cause ? { cause } : undefined);
     this.name = 'ProviderError';
     this.code = code;
+    this.hint = hint;
+    this.status = status;
+    this.endpoint = endpoint;
+    this.via = via;
+    this.detail = detail;
+    this.at = new Date().toISOString();
+  }
+
+  /** Key/value pairs for the "Technical details" panel and bug reports. */
+  diagnostics() {
+    return [
+      ['Error code', this.code],
+      ['HTTP status', this.status],
+      ['Request', this.endpoint],
+      ['Route', this.via === 'connector' ? 'Your browser (Nishchit Connector)' : this.via === 'proxy' ? 'Local proxy (server.mjs)' : this.via],
+      ['IRCTC said', this.detail],
+      ['Underlying error', this.cause instanceof Error ? `${this.cause.name}: ${this.cause.message}` : undefined],
+      ['Time', this.at],
+    ].filter(([, v]) => v !== undefined && v !== null && v !== '');
   }
 }
 
-export class StaticProvider {
-  /** @param {{ baseUrl: URL, latencyMs?: number, fetchFn?: typeof fetch }} opts */
-  constructor({ baseUrl, latencyMs = 0, fetchFn = globalThis.fetch.bind(globalThis) }) {
-    this.baseUrl = baseUrl;
-    this.latencyMs = latencyMs;
-    this.fetchFn = fetchFn;
-    this.cache = new Map();
+/**
+ * Used when no route to IRCTC exists (no extension, no proxy). Every call fails with the
+ * setup instructions instead of silently falling back to made-up data.
+ */
+export class NoSourceProvider {
+  constructor(error) {
+    this.error = error;
   }
 
-  async getTrain(number, { signal } = {}) {
-    if (!/^\d{5}$/.test(number)) return null;
-    if (this.cache.has(number)) return this.cache.get(number);
-
-    const res = await this.fetchFn(new URL(`trains/${number}.json`, this.baseUrl), { signal });
-    if (res.status === 404) return null;
-    if (!res.ok) throw new ProviderError(`Could not load train ${number} (${res.status})`, 'network');
-
-    const raw = await res.json();
-    const train = Object.freeze({ ...raw, route: normalizeRoute(raw.route) });
-    this.cache.set(number, train);
-    return train;
+  async getTrain() {
+    throw this.error;
   }
 
-  async getChart({ train, date, signal }) {
-    await delay(this.latencyMs, signal);
-    return { berths: simulateChart(train, date), source: 'simulated', fetchedAt: new Date() };
+  async getChart() {
+    throw this.error;
   }
-}
-
-function delay(ms, signal) {
-  if (!ms) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(signal.reason ?? new DOMException('Aborted', 'AbortError'));
-      },
-      { once: true },
-    );
-  });
 }

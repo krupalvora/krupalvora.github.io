@@ -1,7 +1,8 @@
 import { CONFIG } from './config.js';
 import { buildSearchResult } from './app/search.js';
-import { StaticProvider } from './data/provider.js';
+import { CONNECTOR_BASE, connectorFetch, detectConnector } from './data/connector.js';
 import { IrctcProvider } from './data/irctcProvider.js';
+import { NoSourceProvider, ProviderError } from './data/provider.js';
 import { toISODate } from './domain/time.js';
 import { isComplete, queryFromParams, queryToParams } from './state/query.js';
 import { hydrateIcons } from './ui/dom.js';
@@ -16,8 +17,10 @@ async function bootstrap() {
   hydrateIcons();
 
   const today = toISODate(new Date());
-  const { provider, notFoundHint } = selectProvider();
+  const { provider, via } = await selectProvider();
   const results = createResultsView({ root: document.getElementById('results') });
+  if (!via) results.renderSetup(CONFIG.connector);
+  else console.info(`[nishchit] IRCTC data via ${via}`);
 
   let inFlight = null;
 
@@ -27,7 +30,7 @@ async function bootstrap() {
     today,
     partySizes: CONFIG.partySizes,
     chartRules: CONFIG.chartRules,
-    notFoundHint,
+    onError: reportError,
     onSubmit: (query) => {
       pushQuery(query);
       search(query);
@@ -43,7 +46,7 @@ async function bootstrap() {
     results.renderLoading(query);
     try {
       const train = await provider.getTrain(query.train, { signal: controller.signal });
-      if (!train) throw new Error(`Train ${query.train} was not found.`);
+      if (!train) throw new ProviderError(`IRCTC has no train numbered ${query.train}.`, 'not-found', { via: provider.via, hint: 'Check the train number.' });
       const chart = await provider.getChart({
         train,
         date: query.date,
@@ -54,8 +57,9 @@ async function bootstrap() {
       if (!controller.signal.aborted) results.render(result);
     } catch (err) {
       if (err?.name === 'AbortError') return;
-      console.error(err);
-      results.renderError(err?.message || 'Unexpected error while reading the chart.');
+      reportError(err, { query });
+      if (err?.code === 'no-source') results.renderSetup(CONFIG.connector);
+      else results.renderError(err);
     } finally {
       if (inFlight === controller) {
         inFlight = null;
@@ -68,7 +72,7 @@ async function bootstrap() {
     const query = queryFromParams(new URLSearchParams(location.search), today);
     const ready = await form.setQuery(query);
     if (ready && isComplete(query)) search(query);
-    else results.hide();
+    else if (via) results.hide(); // keep the setup card visible when there's no route to IRCTC
   }
 
   function pushQuery(query) {
@@ -82,40 +86,62 @@ async function bootstrap() {
 }
 
 /**
- * Live needs a local proxy (server.mjs) — it can't run on a static host like GitHub Pages
- * (no server, and IRCTC's CORS + Akamai block direct calls). So live is enabled only when:
- *   - an explicit ?proxy=<url> is given (use it anywhere), OR
- *   - the page is served from localhost (the dev server), where same-origin = the proxy.
- * On the deployed Pages site the simulated StaticProvider is always used, so it just works.
+ * Pick how requests reach IRCTC. There is no demo fallback.
+ *   1. ?proxy=<url> (or CONFIG.live.base) — explicit proxy.
+ *   2. Nishchit Connector extension — requests run in the user's own browser. Production.
+ *   3. localhost with server.mjs running — same-origin dev proxy.
+ *   4. none — every call fails with setup instructions.
  */
-function selectProvider() {
+async function selectProvider() {
   const params = new URLSearchParams(location.search);
-  const forceDemo = params.get('demo') === '1';
-  const isLocal = ['localhost', '127.0.0.1', '[::1]', ''].includes(location.hostname);
-  const proxyParam = params.get('proxy');
-  const base = proxyParam || CONFIG.live.base || (isLocal ? location.origin : '');
-  const wantLive = !forceDemo && Boolean(proxyParam || CONFIG.live.enabled || params.get('live') === '1') && Boolean(base);
+  const live = CONFIG.live;
+  const common = { endpoints: live.endpoints, coachGapMs: live.coachGapMs };
 
-  if (wantLive) {
-    return {
-      provider: new IrctcProvider({ base, endpoints: CONFIG.live.endpoints, coachGapMs: CONFIG.live.coachGapMs }),
-      notFoundHint: 'Check the train number.',
-    };
+  const explicitProxy = params.get('proxy') || live.base;
+  if (explicitProxy) return { via: 'proxy', provider: new IrctcProvider({ ...common, base: explicitProxy, via: 'proxy' }) };
+
+  const version = await detectConnector();
+  if (version) {
+    return { via: `connector v${version}`, provider: new IrctcProvider({ ...common, base: CONNECTOR_BASE, via: 'connector', fetchFn: connectorFetch }) };
   }
-  if (!forceDemo && !base && (params.get('live') === '1' || CONFIG.live.enabled)) {
-    console.info('Live mode needs a local proxy (?proxy=… or run server.mjs); using simulated data.');
-  }
+
+  if (await devProxyRunning()) return { via: 'proxy', provider: new IrctcProvider({ ...common, base: location.origin, via: 'proxy' }) };
+
   return {
-    provider: new StaticProvider({ baseUrl: CONFIG.dataBaseUrl, latencyMs: CONFIG.simulatedLatencyMs }),
-    notFoundHint: 'Demo data has 19017, 12901 and 12933.',
+    via: null,
+    provider: new NoSourceProvider(
+      new ProviderError('Nishchit reads the chart from IRCTC through your own browser, and the Nishchit Connector extension is not installed.', 'no-source', {
+        hint: 'Install the connector (see the card below), reload this page, then search again.',
+      }),
+    ),
   };
+}
+
+/** server.mjs answers /__nishchit/health; a plain static server (or Pages) does not. */
+async function devProxyRunning() {
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return false;
+  try {
+    const res = await fetch(new URL('__nishchit/health', location.origin), { cache: 'no-store' });
+    return res.ok && (await res.json())?.proxy === true;
+  } catch {
+    return false;
+  }
+}
+
+/** Full diagnostics for us (console); the user sees the message + "Technical details". */
+function reportError(err, context = {}) {
+  console.groupCollapsed(`[nishchit] ${err?.code ?? 'error'}: ${err?.message}`);
+  if (typeof err?.diagnostics === 'function') console.table(Object.fromEntries(err.diagnostics()));
+  if (Object.keys(context).length) console.log('context', context);
+  console.error(err);
+  console.groupEnd();
 }
 
 bootstrap().catch((err) => {
   console.error(err);
   const el = document.getElementById('form-error');
   if (el) {
-    el.textContent = 'The app failed to start. Please reload the page.';
+    el.textContent = `The app failed to start: ${err?.message ?? err}. Please reload the page.`;
     el.hidden = false;
   }
 });

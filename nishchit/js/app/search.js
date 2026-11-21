@@ -72,6 +72,8 @@ export function buildSearchResult({ train, chart, query, now = new Date(), chart
     schedule,
     stage,
     source: chart.source,
+    via: chart.via,
+    warnings: chart.warnings ?? [],
     fetchedAt: chart.fetchedAt,
     status: plans.length ? 'full' : partial || boardLater ? 'partial' : 'none',
     plans: plans.slice(0, 5),

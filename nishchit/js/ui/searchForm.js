@@ -10,12 +10,12 @@ import { formatDateTime, formatDay, plural } from './format.js';
  * the provider (train lookup) and the onSubmit callback.
  */
 export class SearchForm {
-  constructor({ root, provider, today, partySizes, chartRules, notFoundHint = '', onSubmit }) {
+  constructor({ root, provider, today, partySizes, chartRules, onError = () => {}, onSubmit }) {
     this.root = root;
     this.provider = provider;
     this.today = today;
     this.chartRules = chartRules;
-    this.notFoundHint = notFoundHint;
+    this.onError = onError;
     this.onSubmit = onSubmit;
     this.train = null;
     this.lookup = null; // AbortController for the in-flight train lookup
@@ -178,12 +178,13 @@ export class SearchForm {
       if (train) {
         this.setTrainStatus('ok', train.name);
       } else {
-        this.setTrainStatus('error', `Train ${number} not found.${this.notFoundHint ? ` ${this.notFoundHint}` : ''}`);
+        this.setTrainStatus('error', `IRCTC has no train ${number}. Check the number.`);
       }
     } catch (err) {
       if (err.name === 'AbortError') return null;
       this.train = null;
-      this.setTrainStatus('error', 'Could not load the train. Check your connection.');
+      this.onError(err, { trainLookup: number });
+      this.setTrainStatus('error', err?.code === 'no-source' ? 'Not connected to IRCTC — see below.' : err?.message || String(err));
     }
     this.refreshTrainDependent();
     return this.train;

@@ -6,27 +6,22 @@ import { DEFAULT_ENGINE_OPTIONS } from './domain/engine.js';
  * not in code paths.
  */
 export const CONFIG = Object.freeze({
-  dataBaseUrl: new URL('../data/', import.meta.url),
-  simulatedLatencyMs: 450,
   chartRules: DEFAULT_CHART_RULES,
   engine: DEFAULT_ENGINE_OPTIONS,
   partySizes: [1, 2, 3, 4],
 
   /**
-   * Live IRCTC data.
+   * IRCTC data. There is no simulated/demo data: every search hits IRCTC.
    *
-   * IRCTC's own endpoints cannot be called straight from a static page: their CORS header
-   * only allows IRCTC's own origins, and every call needs a live Akamai Bot-Manager session
-   * (the _abck / bm_* cookies and the greq / bmirak headers seen in the browser). So `base`
-   * must point at a small proxy YOU run on your own origin, which refreshes those cookies,
-   * calls IRCTC, and returns clean JSON. The page code never touches IRCTC directly.
-   *
-   * Turn it on with ?live=1 (and optionally &proxy=https://your-proxy) or by editing this.
-   * Paths are relative to `base`.
+   * A page can't call IRCTC itself (CORS + Akamai session), so requests go through either:
+   *   1. the Nishchit Connector extension (/connector) — runs them inside an irctc.co.in tab
+   *      in the user's own browser, with their cookies and IP. Used whenever it's installed.
+   *   2. a proxy: ?proxy=<url>, `base` below, or the page's own origin on localhost
+   *      (server.mjs). Dev only — a hosted proxy shares one IP and gets blocked.
+   * Endpoint paths are relative to the IRCTC origin / proxy base.
    */
   live: {
-    enabled: false,
-    base: '', // e.g. 'https://nishchit-proxy.<you>.workers.dev'
+    base: '', // optional proxy base; leave empty to rely on the extension
     // The chart is two POST calls: trainComposition (coach list + chart status), then
     // coachComposition per coach (berths + per-segment occupancy). See js/data/irctc/.
     endpoints: {
@@ -35,5 +30,11 @@ export const CONFIG = Object.freeze({
       coachComposition: 'online-charts/api/coachComposition',
     },
     coachGapMs: 500, // IRCTC throttling courtesy; one coachComposition at a time
+  },
+
+  connector: {
+    // Built by `npm run pack:connector`; linked from the setup card.
+    downloadUrl: new URL('../assets/nishchit-connector.zip', import.meta.url).href,
+    chartsUrl: 'https://www.irctc.co.in/online-charts',
   },
 });
