@@ -13,15 +13,14 @@ export const CONFIG = Object.freeze({
   /**
    * IRCTC data. There is no simulated/demo data: every search hits IRCTC.
    *
-   * A page can't call IRCTC itself (CORS + Akamai session), so requests go through either:
-   *   1. the Nishchit Connector extension (/connector) — runs them inside an irctc.co.in tab
-   *      in the user's own browser, with their cookies and IP. Used whenever it's installed.
-   *   2. a proxy: ?proxy=<url>, `base` below, or the page's own origin on localhost
-   *      (server.mjs). Dev only — a hosted proxy shares one IP and gets blocked.
-   * Endpoint paths are relative to the IRCTC origin / proxy base.
+   * A page can't call IRCTC itself (IRCTC's CORS only allows its own origins), so requests go
+   * to a proxy with the same paths:
+   *   - `base` below: the deployed Cloudflare Worker (worker/index.js). Production.
+   *   - ?proxy=<url> overrides it (testing another deployment).
+   *   - on localhost with server.mjs running, the page's own origin (dev).
    */
   live: {
-    base: '', // optional proxy base; leave empty to rely on the extension
+    base: 'https://nishchit-proxy.krupal.workers.dev', // deployed Worker (worker/); ?proxy=<url> overrides
     // The chart is two POST calls: trainComposition (coach list + chart status), then
     // coachComposition per coach (berths + per-segment occupancy). See js/data/irctc/.
     endpoints: {
@@ -32,9 +31,5 @@ export const CONFIG = Object.freeze({
     coachGapMs: 500, // IRCTC throttling courtesy; one coachComposition at a time
   },
 
-  connector: {
-    // Built by `npm run pack:connector`; linked from the setup card.
-    downloadUrl: new URL('../assets/nishchit-connector.zip', import.meta.url).href,
-    chartsUrl: 'https://www.irctc.co.in/online-charts',
-  },
+  chartsUrl: 'https://www.irctc.co.in/online-charts/',
 });

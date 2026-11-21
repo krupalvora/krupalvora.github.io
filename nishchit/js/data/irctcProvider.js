@@ -6,20 +6,18 @@ import { ProviderError } from './provider.js';
 /**
  * Live IRCTC data provider (getTrain / getChart).
  *
- * The transport is injected as `fetchFn` + `base`:
- *   - via 'connector': connectorFetch, base https://www.irctc.co.in/ — requests run inside an
- *     IRCTC tab in the USER's browser (extension in /connector). Production path.
- *   - via 'proxy': window.fetch, base = a proxy you run (server.mjs on localhost) that holds
- *     the IRCTC session. Dev path.
- * A page cannot call IRCTC directly: IRCTC's CORS allows only its own origins and every call
- * needs a live Akamai session (_abck / bm_* cookies, greq / bmirak headers).
+ * `base` is a proxy with IRCTC's paths: the Cloudflare Worker in worker/ (production) or
+ * server.mjs on localhost (dev). A page cannot call IRCTC directly: IRCTC's CORS header only
+ * allows its own origins. If IRCTC blocks the proxy, the proxy says so ({ blocked: true }) and
+ * the user sees that, with a link to check the chart on IRCTC themselves.
  */
 export class IrctcProvider {
-  constructor({ base, endpoints, via = 'proxy', coachGapMs = 0, maxRetries = 2, fetchFn = globalThis.fetch.bind(globalThis) }) {
+  constructor({ base, endpoints, via = 'proxy', chartsUrl = 'https://www.irctc.co.in/online-charts/', coachGapMs = 0, maxRetries = 2, fetchFn = globalThis.fetch.bind(globalThis) }) {
     if (!base) throw new Error('IrctcProvider needs a base URL.');
     this.base = base.endsWith('/') ? base : `${base}/`;
     this.endpoints = endpoints;
     this.via = via;
+    this.chartsUrl = chartsUrl;
     this.coachGapMs = coachGapMs;
     this.maxRetries = maxRetries;
     this.fetchFn = fetchFn;
@@ -183,25 +181,15 @@ export class IrctcProvider {
         res = await this.fetchFn(url, {
           ...init,
           signal,
-          credentials: 'include',
           headers: {
             accept: 'application/json, text/plain, */*',
             'content-type': 'application/json',
-            bmirak: 'webbm',
-            greq: String(Date.now()),
           },
         });
       } catch (err) {
         if (err?.name === 'AbortError') throw err;
-        if (err?.name === 'ConnectorError') {
-          throw new ProviderError(`The Nishchit Connector could not reach IRCTC for ${what}.`, 'connector', meta({
-            detail: err.message,
-            hint: 'Check that the extension is enabled and that https://www.irctc.co.in/online-charts opens in this browser.',
-            cause: err,
-          }));
-        }
-        lastErr = new ProviderError(`Could not reach ${via === 'proxy' ? 'the local proxy' : 'IRCTC'} for ${what}.`, 'network', meta({
-          hint: via === 'proxy' ? 'Is server.mjs running?' : 'Check your internet connection and try again.',
+        lastErr = new ProviderError(`Could not reach Nishchit's data server for ${what}.`, 'network', meta({
+          hint: 'Check your internet connection and try again.',
           cause: err,
         }));
         continue;
@@ -210,6 +198,18 @@ export class IrctcProvider {
       const text = await res.text().catch(() => '');
       const status = res.status;
       if (status === 404) return null;
+      const blocked = parseBlocked(text);
+      if (blocked) {
+        throw new ProviderError("IRCTC is blocking Nishchit's server right now, so the live chart can't be fetched.", 'blocked', meta({
+          status: blocked.upstreamStatus ?? status,
+          detail: [
+            `IRCTC answered HTTP ${blocked.upstreamStatus ?? '?'}`,
+            blocked.reference ? `Akamai reference #${blocked.reference}` : null,
+            blocked.since ? `blocked since ${blocked.since}` : null,
+          ].filter(Boolean).join(', '),
+          hint: `Check the chart directly on IRCTC: ${this.chartsUrl}. You can try Nishchit again in about ${Math.round((blocked.retryAfterSeconds ?? 120) / 60)} min.`,
+        }));
+      }
       if (RETRY_STATUS.has(status)) {
         lastErr = new ProviderError(`IRCTC did not respond in time for ${what} (HTTP ${status}).`, 'timeout', meta({
           status,
@@ -222,10 +222,7 @@ export class IrctcProvider {
         throw new ProviderError(`IRCTC refused the request for ${what} (HTTP ${status}).`, 'forbidden', meta({
           status,
           detail: describeBody(text),
-          hint:
-            via === 'proxy'
-              ? 'The IRCTC session on the proxy has expired. Refresh the cookie (or use npm run serve:auto) and retry.'
-              : 'Open https://www.irctc.co.in/online-charts in this browser, complete any check IRCTC shows, then search again.',
+          hint: `Check the chart directly on IRCTC: ${this.chartsUrl}`,
         }));
       }
       if (status === 429) {
@@ -249,6 +246,17 @@ export class IrctcProvider {
       }
     }
     throw lastErr;
+  }
+}
+
+/** The Worker's { blocked: true, ... } answer, or null. */
+function parseBlocked(text) {
+  if (!text || !text.includes('"blocked"')) return null;
+  try {
+    const data = JSON.parse(text);
+    return data?.blocked === true ? data : null;
+  } catch {
+    return null;
   }
 }
 

@@ -12,15 +12,22 @@ const STAGE_LABEL = {
 
 const ERROR_TITLE = {
   'no-source': 'Not connected to IRCTC',
+  blocked: 'IRCTC is blocking Nishchit',
   'not-found': 'Train not found',
   'no-chart': 'No chart yet',
   forbidden: 'IRCTC blocked the request',
   timeout: 'IRCTC is not responding',
   network: 'Network problem',
-  connector: 'Connector problem',
   parse: 'Unexpected response from IRCTC',
   upstream: 'IRCTC returned an error',
 };
+
+/** Text with https:// URLs turned into links (text nodes only, never innerHTML). */
+function linkify(text) {
+  return String(text)
+    .split(/(https:\/\/[^\s]+?)(?=[.,)]?(?:\s|$))/)
+    .map((part) => (/^https:\/\//.test(part) ? h('a', { href: part, target: '_blank', rel: 'noopener' }, part) : part));
+}
 
 const RISK_LABEL = { 'short-halt': 'Short halt', night: 'Night switch' };
 
@@ -72,7 +79,7 @@ export function createResultsView({ root }) {
         { class: 'state-card state-card--error', role: 'alert' },
         h('h2', {}, ERROR_TITLE[err?.code] ?? 'Something went wrong'),
         h('p', {}, message),
-        err?.hint ? h('p', { class: 'state-card__hint' }, err.hint) : null,
+        err?.hint ? h('p', { class: 'state-card__hint' }, linkify(err.hint)) : null,
         h(
           'details',
           { class: 'state-card__details' },
@@ -80,31 +87,6 @@ export function createResultsView({ root }) {
           h('dl', {}, diagnostics.map(([k, v]) => [h('dt', {}, k), h('dd', { class: 'mono' }, String(v))])),
           copyBtn,
         ),
-      ),
-    );
-  }
-
-  /** Shown when nothing can reach IRCTC: how to install the browser connector. */
-  function renderSetup({ downloadUrl, chartsUrl }) {
-    root.setAttribute('aria-busy', 'false');
-    show(
-      h(
-        'div',
-        { class: 'state-card state-card--warn setup-card' },
-        h('h2', {}, 'Connect Nishchit to IRCTC'),
-        h(
-          'p',
-          {},
-          'Nishchit reads the live reservation chart from IRCTC using your own browser, so your requests go to IRCTC from your own connection, exactly as if you opened the chart yourself. That needs the small Nishchit Connector extension (Chrome, Edge or Brave).',
-        ),
-        h(
-          'ol',
-          { class: 'setup-card__steps' },
-          h('li', {}, h('a', { href: downloadUrl, download: '' }, 'Download the connector'), ' and unzip it.'),
-          h('li', {}, 'Open ', h('span', { class: 'mono' }, 'chrome://extensions'), ', turn on Developer mode, click "Load unpacked" and pick the unzipped folder.'),
-          h('li', {}, 'Reload this page. On the first search the connector opens ', h('a', { href: chartsUrl, target: '_blank', rel: 'noopener' }, 'IRCTC online charts'), ' in a background tab.'),
-        ),
-        h('p', {}, 'The connector only talks to www.irctc.co.in, only for the three chart and schedule requests Nishchit needs, and only when this page asks.'),
       ),
     );
   }
@@ -129,7 +111,7 @@ export function createResultsView({ root }) {
     replaceChildren(root);
   }
 
-  return { render, renderLoading, renderError, renderSetup, hide };
+  return { render, renderLoading, renderError, hide };
 }
 
 /* ------------------------------ header ------------------------------ */

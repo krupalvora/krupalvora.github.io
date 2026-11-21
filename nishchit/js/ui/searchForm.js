@@ -171,6 +171,7 @@ export class SearchForm {
     const controller = new AbortController();
     this.lookup = controller;
     this.setTrainStatus('loading', 'Looking up train…');
+    this.lookupError = null;
     try {
       const train = await this.provider.getTrain(number, { signal: controller.signal });
       if (controller.signal.aborted) return null;
@@ -183,8 +184,9 @@ export class SearchForm {
     } catch (err) {
       if (err.name === 'AbortError') return null;
       this.train = null;
+      this.lookupError = err;
       this.onError(err, { trainLookup: number });
-      this.setTrainStatus('error', err?.code === 'no-source' ? 'Not connected to IRCTC — see below.' : err?.message || String(err));
+      this.setTrainStatus('error', err?.message || String(err));
     }
     this.refreshTrainDependent();
     return this.train;

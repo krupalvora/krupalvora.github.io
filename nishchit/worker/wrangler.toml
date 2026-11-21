@@ -1,0 +1,15 @@
+name = "nishchit-proxy"
+main = "index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Pages allowed to call this proxy (comma-separated, exact origins).
+ALLOWED_ORIGINS = "https://krupalvora.github.io,http://localhost:5173"
+
+# Optional but recommended: a KV namespace shares the cache across all Cloudflare locations
+# (without it, each location caches in memory). Create it with
+#   npx wrangler kv namespace create CACHE
+# then uncomment and paste the id:
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "PASTE_ID_HERE"

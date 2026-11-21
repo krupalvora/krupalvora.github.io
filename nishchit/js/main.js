@@ -1,6 +1,5 @@
 import { CONFIG } from './config.js';
 import { buildSearchResult } from './app/search.js';
-import { CONNECTOR_BASE, connectorFetch, detectConnector } from './data/connector.js';
 import { IrctcProvider } from './data/irctcProvider.js';
 import { NoSourceProvider, ProviderError } from './data/provider.js';
 import { toISODate } from './domain/time.js';
@@ -19,8 +18,7 @@ async function bootstrap() {
   const today = toISODate(new Date());
   const { provider, via } = await selectProvider();
   const results = createResultsView({ root: document.getElementById('results') });
-  if (!via) results.renderSetup(CONFIG.connector);
-  else console.info(`[nishchit] IRCTC data via ${via}`);
+  if (via) console.info(`[nishchit] IRCTC data via ${via}`);
 
   let inFlight = null;
 
@@ -30,7 +28,10 @@ async function bootstrap() {
     today,
     partySizes: CONFIG.partySizes,
     chartRules: CONFIG.chartRules,
-    onError: reportError,
+    onError: (err, context) => {
+      reportError(err, context);
+      results.renderError(err); // full card: hint, IRCTC link, technical details
+    },
     onSubmit: (query) => {
       pushQuery(query);
       search(query);
@@ -58,8 +59,7 @@ async function bootstrap() {
     } catch (err) {
       if (err?.name === 'AbortError') return;
       reportError(err, { query });
-      if (err?.code === 'no-source') results.renderSetup(CONFIG.connector);
-      else results.renderError(err);
+      results.renderError(err);
     } finally {
       if (inFlight === controller) {
         inFlight = null;
@@ -72,7 +72,7 @@ async function bootstrap() {
     const query = queryFromParams(new URLSearchParams(location.search), today);
     const ready = await form.setQuery(query);
     if (ready && isComplete(query)) search(query);
-    else if (via) results.hide(); // keep the setup card visible when there's no route to IRCTC
+    else if (!form.lookupError) results.hide(); // keep a lookup error card visible
   }
 
   function pushQuery(query) {
@@ -86,32 +86,24 @@ async function bootstrap() {
 }
 
 /**
- * Pick how requests reach IRCTC. There is no demo fallback.
- *   1. ?proxy=<url> (or CONFIG.live.base) — explicit proxy.
- *   2. Nishchit Connector extension — requests run in the user's own browser. Production.
- *   3. localhost with server.mjs running — same-origin dev proxy.
- *   4. none — every call fails with setup instructions.
+ * Pick the proxy that reaches IRCTC. There is no demo fallback.
+ *   1. ?proxy=<url>, else CONFIG.live.base (the deployed Worker).
+ *   2. localhost with server.mjs running: same-origin dev proxy.
+ *   3. none: every search fails with a clear "not configured" error.
  */
 async function selectProvider() {
   const params = new URLSearchParams(location.search);
   const live = CONFIG.live;
-  const common = { endpoints: live.endpoints, coachGapMs: live.coachGapMs };
+  const common = { endpoints: live.endpoints, coachGapMs: live.coachGapMs, chartsUrl: CONFIG.chartsUrl };
 
-  const explicitProxy = params.get('proxy') || live.base;
-  if (explicitProxy) return { via: 'proxy', provider: new IrctcProvider({ ...common, base: explicitProxy, via: 'proxy' }) };
-
-  const version = await detectConnector();
-  if (version) {
-    return { via: `connector v${version}`, provider: new IrctcProvider({ ...common, base: CONNECTOR_BASE, via: 'connector', fetchFn: connectorFetch }) };
-  }
-
-  if (await devProxyRunning()) return { via: 'proxy', provider: new IrctcProvider({ ...common, base: location.origin, via: 'proxy' }) };
+  const base = params.get('proxy') || live.base || ((await devProxyRunning()) ? location.origin : '');
+  if (base) return { via: 'proxy', provider: new IrctcProvider({ ...common, base, via: 'proxy' }) };
 
   return {
     via: null,
     provider: new NoSourceProvider(
-      new ProviderError('Nishchit reads the chart from IRCTC through your own browser, and the Nishchit Connector extension is not installed.', 'no-source', {
-        hint: 'Install the connector (see the card below), reload this page, then search again.',
+      new ProviderError("Nishchit's data server is not configured, so it can't fetch charts from IRCTC.", 'no-source', {
+        hint: `You can still check the chart directly on IRCTC: ${CONFIG.chartsUrl}`,
       }),
     ),
   };

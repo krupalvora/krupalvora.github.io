@@ -264,9 +264,9 @@ test('end-to-end live pipeline: schedule + chart endpoints -> a bookable plan', 
 
 /* ------------------------- authentic error reporting ------------------------- */
 
-const provider = (fetchFn, via = 'connector') =>
+const provider = (fetchFn, via = 'proxy') =>
   new IrctcProvider({
-    base: 'https://www.irctc.co.in/',
+    base: 'https://proxy.example/',
     via,
     maxRetries: 1,
     endpoints: { schedule: 'eticketing/protected/mapps1/trnscheduleenquiry/{train}', trainComposition: 'online-charts/api/trainComposition', coachComposition: 'online-charts/api/coachComposition' },
@@ -297,24 +297,21 @@ test('504 from Akamai is retried, then reported with status, endpoint and refere
   assert.match(err.message, /HTTP 504/);
 });
 
-test('403 tells the user what to do for their transport', async () => {
-  const viaConnector = await provider(async () => textRes('Access Denied', 403)).getTrain('19017').catch((e) => e);
-  assert.equal(viaConnector.code, 'forbidden');
-  assert.match(viaConnector.hint, /online-charts in this browser/);
-  const viaProxy = await provider(async () => textRes('Access Denied', 403), 'proxy').getTrain('19017').catch((e) => e);
-  assert.match(viaProxy.hint, /proxy has expired/);
+test('403 passed through from IRCTC points the user to the IRCTC chart page', async () => {
+  const err = await provider(async () => textRes('Access Denied', 403)).getTrain('19017').catch((e) => e);
+  assert.equal(err.code, 'forbidden');
+  assert.match(err.hint, /irctc\.co\.in\/online-charts/);
 });
 
-test('connector failures keep the extension\'s own message', async () => {
-  const p = provider(async () => {
-    const e = new Error('IRCTC did not start a session in this browser');
-    e.name = 'ConnectorError';
-    throw e;
-  });
-  const err = await p.getTrain('19017').catch((e) => e);
-  assert.equal(err.code, 'connector');
-  assert.equal(err.detail, 'IRCTC did not start a session in this browser');
-  assert.ok(err.diagnostics().some(([k]) => k === 'Route'));
+test('proxy "blocked" answer becomes a blocked error, not retried', async () => {
+  let calls = 0;
+  const body = { blocked: true, error: 'x', upstreamStatus: 403, reference: '18.abc.123', since: '2026-11-22T10:00:00Z', retryAfterSeconds: 120 };
+  const err = await provider(async () => (calls++, jsonRes(body, 503))).getTrain('19017').catch((e) => e);
+  assert.equal(calls, 1);
+  assert.equal(err.code, 'blocked');
+  assert.match(err.message, /IRCTC is blocking Nishchit/);
+  assert.match(err.detail, /HTTP 403, Akamai reference #18\.abc\.123/);
+  assert.match(err.hint, /online-charts/);
 });
 
 test('IRCTC error field on trainComposition is shown verbatim', async () => {
@@ -343,6 +340,6 @@ test('a coach IRCTC fails to return becomes a visible warning, not silent data l
   p.coachGapMs = 0;
   const chart = await p.getChart({ train: { number: '19017', route: route4() }, date: '2026-11-21' });
   assert.equal(chart.berths.length, 1);
-  assert.equal(chart.via, 'connector');
+  assert.equal(chart.via, 'proxy');
   assert.deepEqual(chart.warnings, ['Coach B2: Coach data unavailable — its berths are not shown.']);
 });

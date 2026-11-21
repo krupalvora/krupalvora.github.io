@@ -10,7 +10,8 @@
     "test:e2e": "node tests/e2e.mjs",
     "serve:live": "node server.mjs",
     "serve:auto": "IRCTC_AUTO=1 node server.mjs",
-    "pack:connector": "rm -f assets/nishchit-connector.zip && cd connector && zip -qr ../assets/nishchit-connector.zip . -x '.*'"
+    "worker:dev": "npx wrangler dev --config worker/wrangler.toml",
+    "worker:deploy": "npx wrangler deploy --config worker/wrangler.toml"
   },
   "engines": {
     "node": ">=20"

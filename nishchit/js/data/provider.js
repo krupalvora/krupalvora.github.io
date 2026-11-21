@@ -20,13 +20,13 @@
 export class ProviderError extends Error {
   /**
    * @param {string} message plain-language explanation for the user
-   * @param {string} code    stable machine code: no-source | network | forbidden | timeout |
-   *                         upstream | parse | no-chart | connector
+   * @param {string} code    stable machine code: no-source | network | blocked | forbidden |
+   *                         timeout | upstream | parse | no-chart | not-found
    * @param {object} [info]
    * @param {string} [info.hint]     what the user can do about it
    * @param {number} [info.status]   HTTP status from IRCTC / the proxy
    * @param {string} [info.endpoint] request path that failed
-   * @param {string} [info.via]      transport: 'connector' | 'proxy'
+   * @param {string} [info.via]      transport, e.g. 'proxy'
    * @param {string} [info.detail]   raw upstream text (IRCTC message, Akamai reference, body excerpt)
    * @param {unknown} [info.cause]
    */
@@ -48,7 +48,7 @@ export class ProviderError extends Error {
       ['Error code', this.code],
       ['HTTP status', this.status],
       ['Request', this.endpoint],
-      ['Route', this.via === 'connector' ? 'Your browser (Nishchit Connector)' : this.via === 'proxy' ? 'Local proxy (server.mjs)' : this.via],
+      ['Route', this.via],
       ['IRCTC said', this.detail],
       ['Underlying error', this.cause instanceof Error ? `${this.cause.name}: ${this.cause.message}` : undefined],
       ['Time', this.at],
@@ -57,7 +57,7 @@ export class ProviderError extends Error {
 }
 
 /**
- * Used when no route to IRCTC exists (no extension, no proxy). Every call fails with the
+ * Used when no route to IRCTC exists (no proxy configured). Every call fails with the
  * setup instructions instead of silently falling back to made-up data.
  */
 export class NoSourceProvider {

@@ -10,29 +10,35 @@ npm start        # serves on http://localhost:5173 (python3 http.server)
 npm test         # node --test, no dependencies
 ```
 
-## Deploy (GitHub Pages)
+## Deploy
 
 Nishchit ships inside the portfolio repo at `nishchit/` and is served at `<site>/nishchit/`.
 Every path is relative, so it works under any base path. **There is no demo or simulated
-data**: every search reads the real chart from IRCTC, through the visitor's own browser via
-the Nishchit Connector extension (below). Without it, the page says so and shows how to install it.
+data**: every search reads the real chart from IRCTC through the proxy in `worker/`.
+
+1. Deploy the proxy (Cloudflare account needed, free plan is fine):
+   ```sh
+   npx wrangler login
+   npx wrangler kv namespace create CACHE     # optional: shared cache; paste the id into worker/wrangler.toml
+   npm run worker:deploy                      # prints https://nishchit-proxy.<account>.workers.dev
+   ```
+2. Put that URL in `CONFIG.live.base` ([js/config.js](js/config.js)) and push to Pages.
+   (`?proxy=<url>` overrides it for testing.)
 
 - `.nojekyll` at the repo root disables Jekyll so nothing is skipped or rewritten.
-- Dev-only files (`server.mjs`, `lib/`, `tests/`, `package.json`, `docs/`) are never imported by
-  the browser.
+- Dev-only files (`server.mjs`, `lib/`, `worker/`, `tests/`, `package.json`, `docs/`) are never
+  imported by the browser.
 - Secrets (`.irctc-session`, `.chrome-irctc/`, `.irctc-dumps/`) are git-ignored and never deployed.
-- After changing anything in `connector/`, run `npm run pack:connector` and commit
-  `assets/nishchit-connector.zip` (the setup card links to it).
 
 ## Structure
 
 ```
 js/domain/     pure logic, no DOM: engine (plan search), route, berths, chart timing, fare
-js/data/       IrctcProvider (live IRCTC) + connector.js (talks to the extension)
+js/data/       IrctcProvider (live IRCTC via the proxy)
 js/app/        search.js: runs the engine per class and builds the view model
 js/state/      query <-> URL (shareable links, back button)
 js/ui/         form + results rendering (text via DOM nodes, never innerHTML)
-connector/     the Nishchit Connector browser extension (MV3)
+worker/        Cloudflare Worker proxy to IRCTC (production)
 tests/         node:test unit tests; tests/fixtures/ holds test-only timetables + chart simulator
 ```
 
@@ -46,65 +52,48 @@ Top 3 distinct plans per class. Party of N needs N berths per leg.
 
 ## Live IRCTC data
 
-The page cannot call IRCTC by itself. Two hard blockers, both visible in a captured browser
-request to `trnscheduleenquiry`:
-
-1. **CORS.** IRCTC returns `Access-Control-Allow-Origin: https://www.operations.irctc.co.in`
-   — not a wildcard. The browser refuses to let JS on any other origin read the response.
-2. **Akamai session.** Every call needs live `_abck` / `bm_*` cookies, minted by Akamai's own
-   script running *on irctc.co.in*. A page on another origin can neither create nor send them.
-
-A server-side proxy solves both, but then every user's request leaves from **one** IP, which
-Akamai blocks quickly (datacenter IPs get 403 outright). So production uses the visitor's own
-browser instead.
-
-### Nishchit Connector (production): requests from the user's own browser
-
-[connector/](connector/) is a small Manifest V3 extension (Chrome, Edge, Brave):
+The data is the public chart at https://www.irctc.co.in/online-charts/. Its page calls:
 
 ```
-Nishchit page ──postMessage──▶ bridge.js (content script) ──▶ background.js (service worker)
-                                                                   │ chrome.scripting.executeScript(world: MAIN)
-                                                                   ▼
-                                              www.irctc.co.in/online-charts tab (background)
-                                              fetch('/online-charts/api/…')  ← same-origin
+POST /online-charts/api/trainComposition   { trainNo, jDate, boardingStation }      -> coaches + chart status
+POST /online-charts/api/coachComposition   { trainNo, jDate, boardingStation,
+                                             remoteStation, trainSourceStation,
+                                             coach, cls }                           -> berths + vacant segments
+GET  /eticketing/protected/mapps1/trnscheduleenquiry/{train}                        -> route
 ```
 
-- The request runs **inside an IRCTC tab**, so it's a same-origin call: no CORS, Akamai's own
-  script has minted this user's cookies, and it leaves from the user's IP. No server of ours is
-  involved, so there is nothing shared for IRCTC to block.
-- It reuses an IRCTC tab the user already has open, or opens `online-charts` in a background
-  tab, waits for the `_abck`/`bm_sz` cookies, and closes that tab after 10 idle minutes.
-- On a 403 it reloads the IRCTC tab once (Akamai re-mints the session) and retries.
-- Allow-list: only `GET trnscheduleenquiry/<train>`, `POST trainComposition`,
-  `POST coachComposition` on `www.irctc.co.in`. The page never chooses the origin.
-- It only injects its bridge on `krupalvora.github.io/nishchit/*` and `localhost` (edit
-  `connector/manifest.json` if the site moves).
+A page on another origin can't read these (IRCTC's `Access-Control-Allow-Origin` is only
+`https://www.operations.irctc.co.in`), so the page calls a proxy with the same paths.
 
-Install (until it's on the Chrome Web Store): download `assets/nishchit-connector.zip` (or use
-the `connector/` folder), unzip, `chrome://extensions` → Developer mode → **Load unpacked**.
+### Proxy (worker/index.js)
 
-How the page picks a route ([js/main.js](js/main.js) `selectProvider`):
+- Forwards only those three endpoints, with validated inputs, and adds CORS for the site.
+- Identifies itself (`User-Agent: Nishchit/1.0 (+site)`). It does **not** try to get past
+  IRCTC's bot protection (no cookie, fingerprint or IP tricks).
+- Caches successful answers (schedule 24 h, chart and coaches 10 min, "not prepared" 5 min) in
+  KV, so many users searching the same train and date cost IRCTC one call per TTL. IRCTC
+  `{ error }` bodies and failures are never cached.
+- **If IRCTC blocks it** (401/403/429 or Akamai's "Access Denied" page) it answers
+  `503 { blocked: true, upstreamStatus, reference, since }` and stops calling IRCTC for 2 min.
+  The page shows "IRCTC is blocking Nishchit's server right now" with a link to check the
+  chart on IRCTC directly, plus the Akamai reference under Technical details.
+- `npm run worker:dev` runs it locally (http://localhost:8787 → use `?proxy=http://localhost:8787`).
 
-```
-?proxy=<url> / CONFIG.live.base   explicit proxy
-connector installed                via the user's browser (production)
-localhost + server.mjs running     same-origin dev proxy (detected via /__nishchit/health)
-none                               "Connect Nishchit to IRCTC" card; searches fail with that reason
-```
+Whether IRCTC tolerates the proxy is IRCTC's call: Cloudflare's IP ranges may well be refused.
+If they are, users see the block message; nothing is faked.
 
 ### Errors
 
 Errors are never swallowed or replaced with fake data. `ProviderError`
 ([js/data/provider.js](js/data/provider.js)) carries a plain-language message and hint for the
-user plus the facts for us: code, HTTP status, endpoint, route (connector/proxy), and IRCTC's
-own words (`error` / `errorMessage` field, or the Akamai edge reference such as
-`#221.36adce17…` from an HTML error page). The UI shows the message + hint, with a
+user plus the facts for us: code, HTTP status, endpoint, route, and IRCTC's
+own words (`error` / `errorMessage` field, the proxy's `blocked` report, or the Akamai edge reference such as
+`#221.36adce17…` from an HTML error page). The UI shows the message + hint (links clickable), with a
 **Technical details** panel and a **Copy details** button for bug reports; the console logs the
 same as a collapsed group (`[nishchit] <code>: …`). A coach IRCTC fails to return is shown as a
 "Some of the chart is missing" warning rather than silently dropped.
 
-### Dev proxy on your machine (localhost)
+### Dev proxy with your own session (localhost)
 
 [server.mjs](server.mjs) is a local dev server that serves the site **and** proxies IRCTC on
 the same origin (so no CORS) from your local IP (which IRCTC accepts; datacenter IPs get 403).
@@ -134,12 +123,6 @@ Either way, the first response of each IRCTC endpoint is saved to `.irctc-dumps/
 the field mapping in `mapChart.js` can be checked against real data. With Option B, cookies
 expire — refresh `.irctc-session` and restart when calls start returning 403 (Option A refreshes
 itself).
-
-### Runtime toggles
-
-```
-?proxy=https://host          force a proxy you host elsewhere
-```
 
 ### Response mapping
 
