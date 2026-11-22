@@ -90,6 +90,12 @@ is installed the page uses it automatically (result card: "Live · your browser"
 page uses the Worker, and a block suggests installing the extension. See
 [extension/README.md](extension/README.md) for install, design and Chrome Web Store publishing.
 
+### Mobile app (mobile/)
+
+A Flutter app that bundles this site and fetches the chart from the phone itself, using the
+same message protocol as the extension. Phones need no extension or computer. See
+[mobile/README.md](mobile/README.md).
+
 ### Errors
 
 Errors are never swallowed or replaced with fake data. `ProviderError`

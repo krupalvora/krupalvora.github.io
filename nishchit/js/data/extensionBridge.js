@@ -28,6 +28,14 @@ export function detectExtension({ win = globalThis.window, timeoutMs = 400 } = {
   });
 }
 
+/**
+ * The Nishchit mobile app (mobile/) runs this page in a WebView and speaks the same protocol as
+ * the extension, fetching from the phone. It marks the page so the UI can say "your phone".
+ */
+export function isNativeApp(win = globalThis.window) {
+  return Boolean(win?.document?.documentElement?.dataset?.nishchitApp);
+}
+
 let counter = 0;
 
 /**

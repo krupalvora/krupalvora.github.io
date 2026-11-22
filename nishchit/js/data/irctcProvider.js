@@ -248,8 +248,8 @@ export class IrctcProvider {
           continue;
         }
         if (err?.name === 'AbortError') throw err;
-        lastErr = via === 'extension'
-          ? new ProviderError(`The Nishchit extension could not fetch ${what} from IRCTC.`, 'network', meta({
+        lastErr = via === 'extension' || via === 'app'
+          ? new ProviderError(`The Nishchit ${via} could not fetch ${what} from IRCTC.`, 'network', meta({
             hint: 'Check your internet connection, reload this page and try again.',
             detail: err?.message,
             cause: err,
@@ -294,7 +294,9 @@ export class IrctcProvider {
           detail: describeBody(text),
           hint: via === 'extension'
             ? `Open IRCTC's chart page in this browser (${this.chartsUrl}), look up any chart there, then search again.`
-            : `Check the chart directly on IRCTC: ${this.chartsUrl}`,
+            : via === 'app'
+              ? `Wait a few minutes and search again, or check the chart directly on IRCTC: ${this.chartsUrl}`
+              : `Check the chart directly on IRCTC: ${this.chartsUrl}`,
         }));
       }
       if (status === 429) {

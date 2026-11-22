@@ -237,7 +237,7 @@ function header(r) {
         'p',
         { class: 'results-head__meta' },
         `${formatDay(fromISODate(query.date))} · ${plural(query.party, 'traveller')} · ${query.cls === 'all' ? 'All classes' : classLabel(query.cls)} · `,
-        h('span', { class: 'pill pill--ok', title: `Fetched ${r.fetchedAt?.toLocaleTimeString?.() ?? ''}` }, r.via === 'proxy' ? 'Live · proxy' : r.via === 'extension' ? 'Live · your browser' : 'Live IRCTC'),
+        h('span', { class: 'pill pill--ok', title: `Fetched ${r.fetchedAt?.toLocaleTimeString?.() ?? ''}` }, r.via === 'proxy' ? 'Live · proxy' : r.via === 'extension' ? 'Live · your browser' : r.via === 'app' ? 'Live · your phone' : 'Live IRCTC'),
       ),
     ),
     h('div', { class: 'stat-tiles' }, statTile(r.totals.full, 'full'), statTile(r.totals.partial, 'partial')),

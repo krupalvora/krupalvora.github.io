@@ -1,0 +1,36 @@
+name: nishchit
+description: Find berths left vacant after the reservation chart - mobile app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_inappwebview: ^6.1.5
+  http: ^1.2.2
+  url_launcher: ^6.3.1
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # The web app (copied from ../ by tool/sync_web.sh). Flutter asset folders are not
+  # recursive, so every subfolder is listed.
+  assets:
+    - assets/web/
+    - assets/web/css/
+    - assets/web/assets/
+    - assets/web/js/
+    - assets/web/js/app/
+    - assets/web/js/data/
+    - assets/web/js/data/irctc/
+    - assets/web/js/domain/
+    - assets/web/js/state/
+    - assets/web/js/ui/

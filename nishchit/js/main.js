@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { buildSearchResult } from './app/search.js';
-import { createExtensionFetch, detectExtension, IRCTC_BASE } from './data/extensionBridge.js';
+import { createExtensionFetch, detectExtension, IRCTC_BASE, isNativeApp } from './data/extensionBridge.js';
 import { IrctcProvider } from './data/irctcProvider.js';
 import { NoSourceProvider, ProviderError } from './data/provider.js';
 import { isMobileDevice } from './env.js';
@@ -115,6 +115,19 @@ async function selectProvider() {
   if (override) return { via: 'proxy', provider: new IrctcProvider({ ...common, base: override, via: 'proxy' }) };
 
   const version = await detectExtension();
+  if (version && isNativeApp()) {
+    document.body.classList.add('is-app');
+    return {
+      via: `app ${version}`,
+      provider: new IrctcProvider({
+        ...common,
+        base: IRCTC_BASE,
+        via: 'app',
+        fetchFn: createExtensionFetch(),
+        requestTimeoutMs: CONFIG.extension.requestTimeoutMs,
+      }),
+    };
+  }
   if (version) {
     return {
       via: `extension ${version}`,
@@ -195,7 +208,10 @@ function showExtensionState(via) {
     return;
   }
 
-  if (hasExtension && introLine) {
+  if (via?.startsWith('app') && introLine) {
+    introLine.textContent = 'Charts load live from IRCTC on your phone.';
+    introLine.hidden = false;
+  } else if (hasExtension && introLine) {
     introLine.textContent = 'Extension connected: charts load live from your browser.';
     introLine.hidden = false;
   } else if (via === 'needs-extension') {

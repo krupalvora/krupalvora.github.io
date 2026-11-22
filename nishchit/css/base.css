@@ -253,6 +253,12 @@ button:disabled {
   color: var(--ink);
 }
 
+/* Inside the mobile app (mobile/): no portfolio link, no browser-extension links. */
+.is-app .back-link,
+.is-app .site-footer a[href="install.html"] {
+  display: none;
+}
+
 .site-footer {
   margin-top: var(--s-7);
   padding: var(--s-6) var(--gutter) var(--s-7);
