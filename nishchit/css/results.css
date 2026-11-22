@@ -556,18 +556,166 @@
   font-weight: 600;
 }
 
-/* Progressive (coach-by-coach) loading */
+/* Loading: centred card while the first coaches are read */
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: min(420px, 60vh);
+  padding: var(--s-6) var(--s-4);
+  text-align: center;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+.loading-card .spinner--lg {
+  margin-bottom: var(--s-2);
+}
+.loading-card__title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.loading-card__title .mono {
+  color: var(--accent);
+}
+.loading-card__sub {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.loading-card .progress {
+  width: min(280px, 100%);
+  margin-top: var(--s-3);
+}
+@media (min-width: 1024px) {
+  /* Centre it in the visible part of the right column. */
+  .loading-card {
+    min-height: calc(100vh - var(--header-h) - 2 * var(--s-6));
+  }
+}
+
+.spinner--lg {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+}
+
+/* Progress bar: determinate (coach n of N) or an indeterminate sweep */
+.progress {
+  position: relative;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--soft);
+  overflow: hidden;
+}
+.progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+.progress--indeterminate .progress__fill {
+  width: 35%;
+  animation: progress-sweep 1.2s ease-in-out infinite;
+}
+@keyframes progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+/* Progressive (coach-by-coach) loading: stays pinned under the header while you scroll */
 .partial-banner {
+  position: sticky;
+  top: calc(var(--header-h) + 8px);
+  z-index: 4;
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--r-md, 10px);
+  box-shadow: var(--shadow-lift);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.partial-banner__row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  margin-bottom: var(--s-3, 12px);
+}
+
+/* No extension yet: a friendly setup step, not an error */
+.install-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-2);
+  padding: var(--s-6) var(--s-5);
+  text-align: center;
   background: var(--surface);
-  border: var(--border);
-  border-radius: var(--r-md, 10px);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+.install-card__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent);
+  margin-bottom: var(--s-1);
+}
+.install-card__icon .icon {
+  width: 24px;
+  height: 24px;
+}
+.install-card h2 {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.install-card p {
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: 15px;
+  max-width: 44ch;
+}
+.install-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.install-card__actions .btn--primary {
+  min-height: 48px;
+  font-size: 16px;
+}
+.install-card__foot {
+  margin-top: var(--s-2);
+  font-size: 13px !important;
+  color: var(--muted) !important;
+}
+.install-card__foot a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.state-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--s-2);
+}
+.state-card--error .state-card__actions .btn {
+  color: var(--danger);
 }
 .spinner--sm {
   width: 16px;

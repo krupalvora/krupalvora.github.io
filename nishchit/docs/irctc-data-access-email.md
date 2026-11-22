@@ -1,11 +1,11 @@
 # Covering email (short version)
 
 > Paste this into the email body and attach (or paste below) `irctc-data-access-request.md`.
-> Example details are filled in — **replace the sample phone `+91 98XXX XXXXX` with your real
+> Example details are filled in - **replace the sample phone `+91 98XXX XXXXX` with your real
 > number** (and check the name/email) before sending. Keep it short; the detail is in the attachment.
 
-**To:** [care@irctc.co.in — ask them to forward to the data/API/B2B team]
-**Subject:** Authorised access to public Reservation Chart (vacant-berth) data — non-commercial passenger tool
+**To:** [care@irctc.co.in - ask them to forward to the data/API/B2B team]
+**Subject:** Authorised access to public Reservation Chart (vacant-berth) data - non-commercial passenger tool
 
 Dear Sir / Madam,
 
@@ -16,7 +16,7 @@ IRCTC; Nishchit only reads the chart and plans.
 
 The tool uses the **same data already shown publicly** on `https://www.irctc.co.in/online-charts/`
 (train schedule, train composition, and per-berth vacancy). I would like to use this data
-**the right way** — through an **authorised channel** rather than the public web endpoints.
+**the right way** - through an **authorised channel** rather than the public web endpoints.
 
 Could you please tell me:
 

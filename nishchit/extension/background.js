@@ -1,13 +1,13 @@
 /**
- * Nishchit extension — background service worker.
+ * Nishchit extension - background service worker.
  *
  * The Nishchit page (via content.js) asks for one IRCTC chart call at a time. We make it from
- * this browser, with the user's own connection and IRCTC session — the same requests IRCTC's
+ * this browser, with the user's own connection and IRCTC session - the same requests IRCTC's
  * chart page makes when the user looks up a chart themselves.
  *
  *   1. Direct: fetch from the extension (host permission for www.irctc.co.in).
  *   2. If IRCTC refuses that (its page session isn't set up in this browser yet), make the call
- *      from an IRCTC chart tab instead — reusing one the user has open, or opening one in the
+ *      from an IRCTC chart tab instead - reusing one the user has open, or opening one in the
  *      background and closing it again after a couple of idle minutes.
  *
  * Requests are serialised with a small gap, and only the three validated endpoints are allowed.

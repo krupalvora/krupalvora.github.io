@@ -106,18 +106,18 @@ same as a collapsed group (`[nishchit] <code>: …`). A coach IRCTC fails to ret
 [server.mjs](server.mjs) is a local dev server that serves the site **and** proxies IRCTC on
 the same origin (so no CORS) from your local IP (which IRCTC accepts; datacenter IPs get 403).
 
-**Option A — auto session (no copy-paste, recommended):**
+**Option A - auto session (no copy-paste, recommended):**
 ```sh
 npm run serve:auto
 ```
 This drives a local Chrome via the DevTools Protocol ([lib/irctcSession.mjs](lib/irctcSession.mjs)):
 a Chrome window opens to the online-charts page, Akamai mints the session there, and the server
-reads the cookies automatically — and re-reads them on a 403. The browser profile persists in
+reads the cookies automatically - and re-reads them on a 403. The browser profile persists in
 `.chrome-irctc/` (gitignored), so after the first run it usually comes up already authenticated.
 Then open **http://localhost:5173/?live=1**. Needs Chrome installed (override its path with
-`CHROME=...`). It controls a browser on your machine, so it is local-only — not for Pages.
+`CHROME=...`). It controls a browser on your machine, so it is local-only - not for Pages.
 
-**Option B — paste a cookie once:**
+**Option B - paste a cookie once:**
 1. In Chrome at `https://www.irctc.co.in/online-charts`, load a chart, then in DevTools → Network
    copy the full `Cookie` request header from any `online-charts` request.
 2. ```sh
@@ -129,16 +129,16 @@ Then open **http://localhost:5173/?live=1**. Needs Chrome installed (override it
 
 Either way, the first response of each IRCTC endpoint is saved to `.irctc-dumps/` (gitignored) so
 the field mapping in `mapChart.js` can be checked against real data. With Option B, cookies
-expire — refresh `.irctc-session` and restart when calls start returning 403 (Option A refreshes
+expire - refresh `.irctc-session` and restart when calls start returning 403 (Option A refreshes
 itself).
 
 ### Response mapping
 
 IRCTC's JSON is undocumented. The adapters isolate it:
 
-- [js/data/irctc/mapSchedule.js](js/data/irctc/mapSchedule.js) — `trnscheduleenquiry` → route.
+- [js/data/irctc/mapSchedule.js](js/data/irctc/mapSchedule.js) - `trnscheduleenquiry` → route.
   Confident; tolerant of field-name variants.
-- [js/data/irctc/mapChart.js](js/data/irctc/mapChart.js) — chart → engine berths. The chart is
+- [js/data/irctc/mapChart.js](js/data/irctc/mapChart.js) - chart → engine berths. The chart is
   **two POST calls**: `trainComposition` → `cdd[]` (`coachName`, `classCode`) plus chart status
   (`chartOneDate` / `chartStatusResponseDto.chartOneFlag`), then `coachComposition` per coach →
   `bdd[]` (`berthNo`, `berthCode`), each with `bsd[]` segments `{from, to, occupancy}` where

@@ -186,8 +186,9 @@ export class SearchForm {
       this.train = null;
       this.lookupError = err;
       this.onError(err, { trainLookup: number });
-      // "Needs a computer" isn't something the user typed wrong: no red field for it.
-      this.setTrainStatus(err?.code === 'needs-desktop' ? 'loading' : 'error', err?.message || String(err));
+      // "Needs a computer" / "needs the extension" isn't something the user typed wrong: no red field.
+      if (err?.code === 'needs-extension') this.setTrainStatus('loading', 'Install the extension to continue');
+      else this.setTrainStatus(err?.code === 'needs-desktop' ? 'loading' : 'error', err?.message || String(err));
     }
     this.refreshTrainDependent();
     return this.train;
@@ -266,5 +267,5 @@ function radio(name, value, checked, label, title) {
 }
 
 function stationOption(stop) {
-  return h('option', { value: stop.code }, `${stop.code} — ${stop.name}`);
+  return h('option', { value: stop.code }, `${stop.code} - ${stop.name}`);
 }

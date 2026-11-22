@@ -1,12 +1,12 @@
 /**
- * Auto-acquire the IRCTC session cookie by driving a local Chrome via the DevTools Protocol —
+ * Auto-acquire the IRCTC session cookie by driving a local Chrome via the DevTools Protocol -
  * so the user never copy-pastes a Cookie header.
  *
  * How it works:
  *   1. Launch Chrome (visible, with a dedicated, persistent profile) pointed at the IRCTC
  *      online-charts page. Akamai's JS runs in that real browser and mints the _abck / bm_*
  *      session cookies, exactly as it would for a human.
- *   2. Connect over CDP (Node's built-in WebSocket — no npm deps) and read the cookies for
+ *   2. Connect over CDP (Node's built-in WebSocket - no npm deps) and read the cookies for
  *      www.irctc.co.in with Network.getCookies.
  *   3. Hand the assembled "name=value; ..." string to the proxy, and re-read it on demand
  *      (e.g. after a 403), which reloads the tab to refresh the session.

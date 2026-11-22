@@ -2,7 +2,7 @@ import { CLASSES, berthId, berthType } from '../../js/domain/berths.js';
 import { hashString, seededRandom } from './random.js';
 
 /**
- * TEST FIXTURE ONLY — simulated reservation chart for engine and e2e tests. Never used by the app.
+ * TEST FIXTURE ONLY - simulated reservation chart for engine and e2e tests. Never used by the app.
  *
  * Walks each berth segment by segment: most passengers ride far, a few board or alight
  * mid-route, and occasionally a stretch is left empty. Deterministic for a given

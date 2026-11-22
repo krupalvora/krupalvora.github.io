@@ -1,4 +1,4 @@
-# Chrome Web Store listing — copy/paste
+# Chrome Web Store listing - copy/paste
 
 ## Name
 Nishchit – Vacant Berth Finder

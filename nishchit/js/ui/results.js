@@ -1,7 +1,9 @@
 import { CHART_STAGES } from '../domain/chart.js';
 import { legKm, legMinutes } from '../domain/route.js';
 import { fromISODate, formatDuration } from '../domain/time.js';
+import { CONFIG } from '../config.js';
 import { h, icon, replaceChildren } from './dom.js';
+import { hardRefresh } from './hardRefresh.js';
 import { berthLabel, classLabel, formatDateTime, formatDay, plural, rupees, stopArr, stopDep } from './format.js';
 
 const STAGE_LABEL = {
@@ -50,7 +52,8 @@ export function createResultsView({ root, intro = null }) {
   }
 
   function renderLoading(query, progress = null) {
-    if (!progress) {
+    const first = !progress;
+    if (first) {
       explorer.status = 'all';
       explorer.types.clear();
       explorer.open.clear();
@@ -59,16 +62,17 @@ export function createResultsView({ root, intro = null }) {
     show(
       h(
         'div',
-        { class: 'results-head' },
-        h(
-          'div',
-          {},
-          h('h2', { class: 'results-head__title' }, h('span', { class: 'mono' }, query.train), 'Finding vacant seats…'),
-          progress?.total ? h('p', { class: 'results-head__sub' }, progressText(progress)) : null,
-        ),
-        h('div', { class: 'spinner', 'aria-hidden': 'true' }),
+        { class: 'loading-card', role: 'status' },
+        h('div', { class: 'spinner spinner--lg', 'aria-hidden': 'true' }),
+        h('h2', { class: 'loading-card__title' }, 'Finding vacant seats on ', h('span', { class: 'mono' }, query.train)),
+        h('p', { class: 'loading-card__sub' }, progress?.total ? progressText(progress) : 'Reading the live chart from IRCTC…'),
+        progressBar(progress),
       ),
     );
+    // Phones: results sit under the form, so bring the loader into view once per search.
+    if (first && root.getBoundingClientRect().top > window.innerHeight * 0.6) {
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   /** Berths found so far, while later coaches are still being fetched. */
@@ -78,8 +82,13 @@ export function createResultsView({ root, intro = null }) {
       h(
         'div',
         { class: 'partial-banner', role: 'status' },
-        h('span', { class: 'spinner spinner--sm', 'aria-hidden': 'true' }),
-        h('span', {}, `${progressText(progress)} — showing berths found so far`),
+        h(
+          'div',
+          { class: 'partial-banner__row' },
+          h('span', { class: 'spinner spinner--sm', 'aria-hidden': 'true' }),
+          h('span', {}, `${progressText(progress)} - showing berths found so far`),
+        ),
+        progressBar(progress),
       ),
       header(r),
       statusHero(r),
@@ -88,12 +97,37 @@ export function createResultsView({ root, intro = null }) {
       plans(r),
       berthExplorer(r, explorer, 'vacant berths so far'),
     );
-    // No scrollIntoView on partial updates — it would yank the page on every coach.
+    // No scrollIntoView on partial updates - it would yank the page on every coach.
+  }
+
+  /** No extension yet: not an error, just the one setup step. */
+  function renderInstall(err) {
+    show(
+      h(
+        'div',
+        { class: 'install-card' },
+        h('span', { class: 'install-card__icon', 'aria-hidden': 'true' }, icon('download')),
+        h('h2', {}, 'One quick step: add the Nishchit extension'),
+        h('p', {}, err?.message),
+        err?.hint ? h('p', { class: 'install-card__hint' }, err.hint) : null,
+        h(
+          'div',
+          { class: 'install-card__actions' },
+          h('a', { class: 'btn btn--primary', href: 'install.html' }, icon('download'), 'Install the extension'),
+          h('button', { type: 'button', class: 'btn btn--ghost', onclick: (e) => hardRefresh(e.currentTarget) }, icon('refresh'), "I've installed it"),
+        ),
+        h('p', { class: 'install-card__foot' }, 'Free, works in Chrome, Edge, Brave and Firefox. Or check the chart directly ', h('a', { href: CONFIG.chartsUrl, target: '_blank', rel: 'noopener' }, 'on IRCTC'), '.'),
+      ),
+    );
   }
 
   /** The real reason, what to do, and the technical facts to copy into a bug report. */
   function renderError(err) {
     root.setAttribute('aria-busy', 'false');
+    if (err?.code === 'needs-extension') {
+      renderInstall(err);
+      return;
+    }
     const message = err?.message || String(err ?? 'Unknown error');
     const diagnostics = typeof err?.diagnostics === 'function' ? err.diagnostics() : [['Error', `${err?.name ?? 'Error'}: ${message}`]];
     const report = [`Nishchit error: ${message}`, ...diagnostics.map(([k, v]) => `${k}: ${v}`), `Page: ${location.href}`, `Browser: ${navigator.userAgent}`].join('\n');
@@ -107,7 +141,7 @@ export function createResultsView({ root, intro = null }) {
             await navigator.clipboard.writeText(report);
             copyBtn.lastChild.textContent = 'Copied';
           } catch {
-            copyBtn.lastChild.textContent = 'Copy failed — select the text above';
+            copyBtn.lastChild.textContent = 'Copy failed - select the text above';
           }
         },
       },
@@ -127,6 +161,11 @@ export function createResultsView({ root, intro = null }) {
           h('summary', {}, 'Technical details'),
           h('dl', {}, diagnostics.map(([k, v]) => [h('dt', {}, k), h('dd', { class: 'mono' }, String(v))])),
           copyBtn,
+        ),
+        h(
+          'div',
+          { class: 'state-card__actions' },
+          h('button', { type: 'button', class: 'btn btn--ghost btn--sm', onclick: (e) => hardRefresh(e.currentTarget) }, icon('refresh'), h('span', {}, 'Hard refresh and try again')),
         ),
       ),
     );
@@ -162,6 +201,24 @@ export function createResultsView({ root, intro = null }) {
 
 function progressText({ done, total }) {
   return `Reading coach ${Math.min(done + 1, total)} of ${total}`;
+}
+
+/** Determinate when the coach count is known, otherwise an indeterminate sweep. */
+function progressBar(progress) {
+  const total = progress?.total ?? 0;
+  const pct = total ? Math.round((Math.min(progress.done, total) / total) * 100) : null;
+  return h(
+    'div',
+    {
+      class: `progress${pct === null ? ' progress--indeterminate' : ''}`,
+      role: 'progressbar',
+      'aria-label': 'Chart loading progress',
+      'aria-valuemin': '0',
+      'aria-valuemax': '100',
+      'aria-valuenow': pct === null ? null : String(pct),
+    },
+    h('span', { class: 'progress__fill', style: pct === null ? null : `width: ${Math.max(pct, 4)}%` }),
+  );
 }
 
 /* ------------------------------ header ------------------------------ */
@@ -302,7 +359,7 @@ function planCard(r, plan, badge) {
   const extra = through !== undefined ? plan.fare - through : 0;
   const standingKm = plan.legs.reduce((s, l) => s + (l.gap ? l.km : 0), 0);
   const seatedLegs = plan.legs.filter((l) => !l.gap).length;
-  const title = plan.switches === 0 ? (standingKm ? 'One berth' : 'Direct — one berth') : plural(plan.switches, 'switch', 'switches');
+  const title = plan.switches === 0 ? (standingKm ? 'One berth' : 'Direct - one berth') : plural(plan.switches, 'switch', 'switches');
 
   const rows = [];
   let n = 0;

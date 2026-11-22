@@ -1,5 +1,5 @@
 /**
- * Nishchit proxy — Cloudflare Worker.
+ * Nishchit proxy - Cloudflare Worker.
  *
  * The page can't call IRCTC itself (IRCTC's CORS only allows its own origins), so this Worker
  * calls the three public online-charts endpoints on the page's behalf and adds a CORS header.
@@ -123,7 +123,7 @@ function validate(name, b) {
 
 /**
  * Why IRCTC is refusing this server, or null. 520 is Cloudflare's code for "the origin closed
- * the connection without a valid reply" — how IRCTC's Akamai edge silently drops servers.
+ * the connection without a valid reply" - how IRCTC's Akamai edge silently drops servers.
  */
 function whyBlocked(status, text) {
   if (status === 401 || status === 403) return `IRCTC refused the request (HTTP ${status})`;
@@ -188,7 +188,7 @@ function json(status, data, headers) {
   return new Response(JSON.stringify(data), { status, headers: { ...headers, 'content-type': 'application/json' } });
 }
 
-/** KV (env.CACHE) when bound — shared across all Cloudflare locations — else in-memory. */
+/** KV (env.CACHE) when bound - shared across all Cloudflare locations - else in-memory. */
 function makeCache(env) {
   const kv = env.CACHE;
   if (kv) {

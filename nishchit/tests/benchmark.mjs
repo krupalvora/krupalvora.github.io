@@ -10,7 +10,7 @@
  *   node tests/benchmark.mjs --date 2026-11-21 19017
  *   BASE=http://localhost:5173 node tests/benchmark.mjs
  *
- * It hits IRCTC through YOUR browser session/IP via the proxy — same path as the app. It does
+ * It hits IRCTC through YOUR browser session/IP via the proxy - same path as the app. It does
  * not bypass anything; if the chart isn't prepared, that train is reported as such.
  */
 import { appendFileSync, writeFileSync } from 'node:fs';
@@ -49,7 +49,7 @@ async function preflight() {
     const res = await fetch(new URL('/__nishchit/health', BASE), { cache: 'no-store' });
     const j = await res.json();
     if (!j.proxy) throw new Error('not a proxy');
-    if (!j.session) log('⚠️  Proxy is up but has no IRCTC session yet — results may be 503. Load the chart page in the opened Chrome window.');
+    if (!j.session) log('⚠️  Proxy is up but has no IRCTC session yet - results may be 503. Load the chart page in the opened Chrome window.');
     return true;
   } catch (err) {
     log(`✖ Cannot reach the local proxy at ${BASE} (${err.message}).`);
@@ -130,7 +130,7 @@ function printRow(r) {
         `    network time ${ms(r.netMs)} | wall-clock total ${ms(r.totalMs)} (incl. ${CONFIG.live.coachGapMs}ms gaps)`,
     );
   } else {
-    log(`• ${r.train} — ${r.status}${r.message ? `: ${r.message}` : ''} (after ${ms(r.totalMs ?? 0)})`);
+    log(`• ${r.train} - ${r.status}${r.message ? `: ${r.message}` : ''} (after ${ms(r.totalMs ?? 0)})`);
   }
 }
 
@@ -140,7 +140,7 @@ function printRow(r) {
   } catch {
     /* ignore */
   }
-  log(`\nNishchit live benchmark — ${trains.length} train(s), date ${date}, via ${BASE}\n`);
+  log(`\nNishchit live benchmark - ${trains.length} train(s), date ${date}, via ${BASE}\n`);
   if (!(await preflight())) process.exit(1);
 
   const rows = [];
@@ -163,7 +163,7 @@ function printRow(r) {
         `  wall-clock per train avg ${ms(stat(ok.map((r) => r.totalMs)).avg)}`,
     );
   } else {
-    log('No train had a prepared chart right now — nothing to benchmark. Try trains leaving within a few hours.');
+    log('No train had a prepared chart right now - nothing to benchmark. Try trains leaving within a few hours.');
   }
   if (process.env.JSON) log('\nJSON:\n' + JSON.stringify(rows, null, 2));
 })();

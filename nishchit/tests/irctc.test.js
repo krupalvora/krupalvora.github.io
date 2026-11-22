@@ -316,7 +316,7 @@ test('a hung request is cut off by the per-request timeout, not left to stall', 
   const t0 = performance.now();
   const err = await p.getTrain('19017').catch((e) => e);
   const elapsed = performance.now() - t0;
-  assert.equal(calls, 2); // tried once, retried once — then gave up
+  assert.equal(calls, 2); // tried once, retried once - then gave up
   assert.equal(err.code, 'timeout');
   assert.match(err.message, /timed out/);
   assert.ok(elapsed < 2000, `should fail fast, took ${Math.round(elapsed)}ms`);
@@ -384,7 +384,7 @@ test('a coach IRCTC fails to return becomes a visible warning, not silent data l
   const chart = await p.getChart({ train: { number: '19017', route: route4() }, date: '2026-11-21' });
   assert.equal(chart.berths.length, 1);
   assert.equal(chart.via, 'proxy');
-  assert.deepEqual(chart.warnings, ['Coach B2: Coach data unavailable — its berths are not shown.']);
+  assert.deepEqual(chart.warnings, ['Coach B2: Coach data unavailable - its berths are not shown.']);
 });
 
 test('a coach that times out is dropped with a warning; the other coaches still render', async () => {
@@ -399,7 +399,7 @@ test('a coach that times out is dropped with a warning; the other coaches still 
       }
       const coach = JSON.parse(init.body).coach;
       if (coach === 'B2') {
-        // Never answers until aborted — exactly the Akamai 504 hang the timeout guards against.
+        // Never answers until aborted - exactly the Akamai 504 hang the timeout guards against.
         return new Promise((_r, reject) => init.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true }));
       }
       return Promise.resolve(jsonRes({ coachName: coach, bdd: [{ berthNo: 1, berthCode: 'L', bsd: [{ from: 'A', to: 'D', occupancy: false }] }] }));

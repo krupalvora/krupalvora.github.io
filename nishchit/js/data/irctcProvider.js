@@ -114,7 +114,7 @@ export class IrctcProvider {
     const remote = composition.remote ?? source;
 
     // Only fetch coaches of classes the planner models (SL / 3A / 2A), and, when the caller
-    // named classes, only those — each coach is a separate IRCTC round-trip.
+    // named classes, only those - each coach is a separate IRCTC round-trip.
     const wanted = composition.coaches.filter((c) => CLASSES[c.cls] && (!classes || classes.includes(c.cls)));
 
     const coachCharts = new Map();
@@ -143,15 +143,15 @@ export class IrctcProvider {
         );
       } catch (err) {
         if (err?.name === 'AbortError') throw err;
-        // A whole-session failure (IRCTC blocking us, or refusing auth) will hit every coach —
+        // A whole-session failure (IRCTC blocking us, or refusing auth) will hit every coach -
         // surface it instead of degrading into a chart that's missing everything. A per-coach
         // timeout or transient error, though, just drops that one coach: the rest still render.
         if (err.code === 'blocked' || err.code === 'forbidden') throw err;
-        warnings.push(`Coach ${coach.coach}: ${err.message} — its berths are not shown.`);
+        warnings.push(`Coach ${coach.coach}: ${err.message} - its berths are not shown.`);
       }
       // One coach failing should not sink the whole chart, but the user must know it's missing.
       if (!warnings.some((w) => w.startsWith(`Coach ${coach.coach}:`)) && (raw === null || raw?.error)) {
-        warnings.push(`Coach ${coach.coach}: ${raw?.error ?? 'IRCTC returned no data'} — its berths are not shown.`);
+        warnings.push(`Coach ${coach.coach}: ${raw?.error ?? 'IRCTC returned no data'} - its berths are not shown.`);
       }
       coachCharts.set(coach.coach, parseCoachComposition(raw));
       if (onProgress && !signal?.aborted) {
@@ -217,7 +217,7 @@ export class IrctcProvider {
   /**
    * One IRCTC call. Retries 502/503/504 (IRCTC is slow and its Akamai edge times out) a
    * couple of times; every other failure becomes a ProviderError carrying what really
-   * happened — status, endpoint, IRCTC's own message / Akamai reference — never a guess.
+   * happened - status, endpoint, IRCTC's own message / Akamai reference - never a guess.
    */
   async send(url, init, signal, what) {
     const RETRY_STATUS = new Set([502, 503, 504]);

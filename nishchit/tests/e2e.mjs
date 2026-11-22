@@ -212,7 +212,7 @@ async function check(name, fn) {
 
 console.log(`E2E against ${BASE}`);
 for (const { name, q } of scenarios) {
-  await check(`${name} — ${q.train} ${q.from}→${q.to} ${q.date} ${q.cls} x${q.party}`, async () => {
+  await check(`${name} - ${q.train} ${q.from}→${q.to} ${q.date} ${q.cls} x${q.party}`, async () => {
     const dom = parse(await dumpDom(qs(q)));
     const exp = expected(q);
     assert.equal(dom.hidden, false, 'results section visible');

@@ -1,4 +1,4 @@
-/* Design tokens — "waitless" visual language (light slate + blue accent).
+/* Design tokens - "waitless" visual language (light slate + blue accent).
    Every colour, radius and shadow the app uses lives here. */
 :root {
   --bg: #f8fafc;

@@ -7,6 +7,7 @@ import { isMobileDevice } from './env.js';
 import { toISODate } from './domain/time.js';
 import { isComplete, queryFromParams, queryToParams } from './state/query.js';
 import { h, hydrateIcons, icon } from './ui/dom.js';
+import { hardRefresh } from './ui/hardRefresh.js';
 import { createResultsView } from './ui/results.js';
 import { SearchForm } from './ui/searchForm.js';
 
@@ -16,6 +17,7 @@ import { SearchForm } from './ui/searchForm.js';
  */
 async function bootstrap() {
   hydrateIcons();
+  document.getElementById('hard-refresh')?.addEventListener('click', (e) => hardRefresh(e.currentTarget));
 
   const today = toISODate(new Date());
   const { provider, via } = await selectProvider();
@@ -32,7 +34,7 @@ async function bootstrap() {
     partySizes: CONFIG.partySizes,
     chartRules: CONFIG.chartRules,
     onError: (err, context) => {
-      reportError(err, context);
+      if (err?.code !== 'needs-extension') reportError(err, context);
       results.renderError(err); // full card: hint, IRCTC link, technical details
     },
     onSubmit: (query) => {
@@ -67,7 +69,7 @@ async function bootstrap() {
       if (!controller.signal.aborted) results.render(view(chart));
     } catch (err) {
       if (err?.name === 'AbortError') return;
-      reportError(err, { query });
+      if (err?.code !== 'needs-extension') reportError(err, { query });
       results.renderError(err);
     } finally {
       if (inFlight === controller) {
@@ -96,12 +98,13 @@ async function bootstrap() {
 
 /**
  * Pick the route to IRCTC. There is no demo fallback.
- *   1. ?proxy=<url> — explicit override (tests, trying another deployment).
- *   2. localhost with server.mjs running — the local dev proxy, using your own IRCTC session.
- *   3. the Nishchit browser extension, if installed — fetches from the user's own browser.
- *   4. CONFIG.live.base — the deployed Worker (IRCTC may block it; the error then suggests
- *      installing the extension).
- *   5. none — every search fails with a clear "not configured" error.
+ *   1. ?proxy=<url> - explicit override (tests, trying another deployment).
+ *   2. localhost with server.mjs running - the local dev proxy, using your own IRCTC session.
+ *   3. the Nishchit browser extension, if installed - fetches from the user's own browser.
+ *   4. on the real site without the extension: ask the user to install it (IRCTC blocks the
+ *      Worker, so trying it would only produce an error).
+ *   5. CONFIG.live.base - the deployed Worker, localhost only (dev without server.mjs).
+ *   6. none - every search fails with a clear "not configured" error.
  */
 async function selectProvider() {
   const params = new URLSearchParams(location.search);
@@ -133,6 +136,19 @@ async function selectProvider() {
       provider: new NoSourceProvider(
         new ProviderError('Nishchit needs a laptop or desktop to read the live chart.', 'needs-desktop', {
           hint: `It uses a free browser extension, which phones and tablets can't run. Open this page in Chrome, Edge or Brave on a computer. You can check the chart on IRCTC from your phone meanwhile: ${CONFIG.chartsUrl}`,
+        }),
+      ),
+    };
+  }
+
+  // Desktop without the extension on the real site: IRCTC blocks the Worker, so a search would
+  // only end in an error. Ask for the extension instead. (Localhost keeps the Worker for dev.)
+  if (!isLocalHost()) {
+    return {
+      via: 'needs-extension',
+      provider: new NoSourceProvider(
+        new ProviderError('Install the free Nishchit extension to read the live chart.', 'needs-extension', {
+          hint: 'It fetches the chart from IRCTC through your own browser. It takes about a minute to set up.',
         }),
       ),
     };
@@ -182,9 +198,13 @@ function showExtensionState(via) {
   if (hasExtension && introLine) {
     introLine.textContent = 'Extension connected: charts load live from your browser.';
     introLine.hidden = false;
-  } else if (via === 'proxy' && !params.has('proxy') && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+  } else if (via === 'needs-extension') {
     notice?.removeAttribute('hidden');
   }
+}
+
+function isLocalHost() {
+  return ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 }
 
 /** Phones/tablets: explain the extension needs a computer, and make it easy to move there. */
@@ -228,7 +248,7 @@ function showMobileNotice(notice) {
 
 /** server.mjs answers /__nishchit/health; a plain static server (or Pages) does not. */
 async function devProxyRunning() {
-  if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return false;
+  if (!isLocalHost()) return false;
   try {
     const res = await fetch(new URL('__nishchit/health', location.origin), { cache: 'no-store' });
     return res.ok && (await res.json())?.proxy === true;

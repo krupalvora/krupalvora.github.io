@@ -6,13 +6,13 @@ import { CLASSES } from '../../domain/berths.js';
  *
  * The mapper is deliberately tolerant of field-name variants, because IRCTC's JSON is not a
  * documented contract and has shifted over time. Each field is read through a small list of
- * candidate keys; if the real response uses a name not listed here, add it to the list — the
+ * candidate keys; if the real response uses a name not listed here, add it to the list - the
  * rest of the app does not change.
  *
  * Our Train shape:
  *   { number, name, classes, composition, route: normalizeRoute([{code,name,arr,dep,day,km}]) }
  *
- * `classes` and `composition` are NOT in the schedule response — they come from the chart
+ * `classes` and `composition` are NOT in the schedule response - they come from the chart
  * response at search time. We seed sensible defaults so the train is usable before a chart
  * is fetched; the chart later supplies the real coaches.
  */

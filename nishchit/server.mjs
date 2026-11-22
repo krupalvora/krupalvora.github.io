@@ -10,7 +10,7 @@
  *   - It runs on your machine, so requests leave from your local IP. IRCTC answers local IPs
  *     but 403s datacenter IPs, so this cannot run on GitHub Pages / a cloud host.
  *   - It attaches the session cookie + headers IRCTC's Akamai layer requires. The cookie is
- *     read from the IRCTC_COOKIE env var or a local `.irctc-session` file (gitignored) — it is
+ *     read from the IRCTC_COOKIE env var or a local `.irctc-session` file (gitignored) - it is
  *     never written into the repo. Cookies expire; refresh them from your browser when calls
  *     start returning 403.
  *
@@ -80,7 +80,7 @@ async function readBody(req) {
 async function proxy(req, res, session) {
   if (!session.get()) {
     res.writeHead(503, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ error: AUTO ? 'IRCTC session not ready — load the chart page in the opened Chrome window.' : 'No IRCTC session. Set IRCTC_COOKIE or create .irctc-session, then restart.' }));
+    res.end(JSON.stringify({ error: AUTO ? 'IRCTC session not ready - load the chart page in the opened Chrome window.' : 'No IRCTC session. Set IRCTC_COOKIE or create .irctc-session, then restart.' }));
     return;
   }
   const url = UPSTREAM + req.url;
@@ -120,12 +120,12 @@ async function proxy(req, res, session) {
     upstream = await call(session.get());
     // On 403 the Akamai session has rotated; refresh once (reloads the Chrome tab) and retry.
     if (upstream.status === 403) {
-      console.warn(`  ${stamp()} 403 from IRCTC for ${label} — refreshing session…`);
+      console.warn(`  ${stamp()} 403 from IRCTC for ${label} - refreshing session…`);
       const fresh = await session.refresh();
       if (fresh) upstream = await call(fresh);
     }
   } catch (err) {
-    console.warn(`  ${stamp()} ✖ ${label} — upstream fetch failed: ${err.message}`);
+    console.warn(`  ${stamp()} ✖ ${label} - upstream fetch failed: ${err.message}`);
     res.writeHead(502, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ error: `Upstream fetch failed: ${err.message}` }));
     return;
@@ -146,7 +146,7 @@ async function proxy(req, res, session) {
   console.log(`  ${stamp()} ${upstream.status === 200 ? '✔' : '•'} ${label} -> ${upstream.status} (${note}, ${Date.now() - started}ms)`);
   await dump(req.url, upstream.status, text);
   if (upstream.status === 403 && !AUTO) {
-    console.warn('  Still 403 — the pasted cookie has expired; refresh .irctc-session.');
+    console.warn('  Still 403 - the pasted cookie has expired; refresh .irctc-session.');
   }
   res.writeHead(upstream.status, {
     'content-type': upstream.headers.get('content-type') ?? 'application/json',
@@ -159,7 +159,7 @@ const stamp = () => new Date().toLocaleTimeString();
 
 /**
  * Save every response (overwriting the latest per endpoint+coach), so .irctc-dumps/ always
- * mirrors the most recent live search — a coach name in the query keeps coaches distinct.
+ * mirrors the most recent live search - a coach name in the query keeps coaches distinct.
  */
 async function dump(reqUrl, status, text) {
   const base = reqUrl.split('?')[0].split('/').filter(Boolean).pop() || 'root';
@@ -209,7 +209,7 @@ server.listen(PORT, async () => {
   console.log(`Nishchit live server on http://localhost:${PORT}/?live=1`);
   try {
     session = await createSession();
-    console.log(session.get() ? '  IRCTC session ready.' : '  No IRCTC session yet — set IRCTC_COOKIE, create .irctc-session, or use IRCTC_AUTO=1.');
+    console.log(session.get() ? '  IRCTC session ready.' : '  No IRCTC session yet - set IRCTC_COOKIE, create .irctc-session, or use IRCTC_AUTO=1.');
   } catch (err) {
     console.error('  Session setup failed:', err.message);
   }

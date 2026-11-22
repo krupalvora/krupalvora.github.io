@@ -1,5 +1,5 @@
 /**
- * VacancyProvider contract — every data source implements these two methods, so the UI
+ * VacancyProvider contract - every data source implements these two methods, so the UI
  * and engine never know where data comes from.
  *
  *   getTrain(number, { signal }) -> Promise<Train|null>
