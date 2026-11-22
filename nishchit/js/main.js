@@ -1,5 +1,6 @@
 import { CONFIG } from './config.js';
 import { buildSearchResult } from './app/search.js';
+import { createExtensionFetch, detectExtension, IRCTC_BASE } from './data/extensionBridge.js';
 import { IrctcProvider } from './data/irctcProvider.js';
 import { NoSourceProvider, ProviderError } from './data/provider.js';
 import { toISODate } from './domain/time.js';
@@ -19,6 +20,10 @@ async function bootstrap() {
   const { provider, via } = await selectProvider();
   const results = createResultsView({ root: document.getElementById('results') });
   if (via) console.info(`[nishchit] IRCTC data via ${via}`);
+  // Without the extension (or a dev proxy) searches go to the Worker, which IRCTC blocks.
+  if (via === 'proxy' && !new URLSearchParams(location.search).has('proxy') && location.hostname !== 'localhost') {
+    document.getElementById('extension-notice')?.removeAttribute('hidden');
+  }
 
   let inFlight = null;
 
@@ -92,20 +97,38 @@ async function bootstrap() {
 }
 
 /**
- * Pick the proxy that reaches IRCTC. There is no demo fallback.
+ * Pick the route to IRCTC. There is no demo fallback.
  *   1. ?proxy=<url> — explicit override (tests, trying another deployment).
- *   2. localhost with server.mjs running — the local dev proxy wins over the deployed Worker,
- *      so local runs use your own IRCTC session.
- *   3. CONFIG.live.base — the deployed Worker (production / Pages).
- *   4. none — every search fails with a clear "not configured" error.
+ *   2. localhost with server.mjs running — the local dev proxy, using your own IRCTC session.
+ *   3. the Nishchit browser extension, if installed — fetches from the user's own browser.
+ *   4. CONFIG.live.base — the deployed Worker (IRCTC may block it; the error then suggests
+ *      installing the extension).
+ *   5. none — every search fails with a clear "not configured" error.
  */
 async function selectProvider() {
   const params = new URLSearchParams(location.search);
   const live = CONFIG.live;
   const common = { endpoints: live.endpoints, coachGapMs: live.coachGapMs, chartsUrl: CONFIG.chartsUrl };
 
-  const base = params.get('proxy') || ((await devProxyRunning()) ? location.origin : '') || live.base;
-  if (base) return { via: 'proxy', provider: new IrctcProvider({ ...common, base, via: 'proxy' }) };
+  const override = params.get('proxy') || ((await devProxyRunning()) ? location.origin : '');
+  if (override) return { via: 'proxy', provider: new IrctcProvider({ ...common, base: override, via: 'proxy' }) };
+
+  const version = await detectExtension();
+  if (version) {
+    return {
+      via: `extension ${version}`,
+      provider: new IrctcProvider({
+        ...common,
+        base: IRCTC_BASE,
+        via: 'extension',
+        fetchFn: createExtensionFetch(),
+        requestTimeoutMs: CONFIG.extension.requestTimeoutMs,
+      }),
+    };
+  }
+
+  const base = live.base;
+  if (base) return { via: 'proxy', provider: new IrctcProvider({ ...common, base, via: 'proxy', extensionUrl: CONFIG.extension.installUrl }) };
 
   return {
     via: null,

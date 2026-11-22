@@ -80,7 +80,15 @@ A page on another origin can't read these (IRCTC's `Access-Control-Allow-Origin`
 - `npm run worker:dev` runs it locally (http://localhost:8787 → use `?proxy=http://localhost:8787`).
 
 Whether IRCTC tolerates the proxy is IRCTC's call: Cloudflare's IP ranges may well be refused.
-If they are, users see the block message; nothing is faked.
+If they are, users see the block message; nothing is faked. (As of Nov 2026 it is refused: Cloudflare 520.)
+
+### Browser extension (extension/)
+
+Because IRCTC refuses servers, the working production route is the **Nishchit browser
+extension**: it fetches the chart from the user's own browser and hands it to the page. When it
+is installed the page uses it automatically (result card: "Live · your browser"); otherwise the
+page uses the Worker, and a block suggests installing the extension. See
+[extension/README.md](extension/README.md) for install, design and Chrome Web Store publishing.
 
 ### Errors
 

@@ -12,12 +12,13 @@ import { ProviderError } from './provider.js';
  * the user sees that, with a link to check the chart on IRCTC themselves.
  */
 export class IrctcProvider {
-  constructor({ base, endpoints, via = 'proxy', chartsUrl = 'https://www.irctc.co.in/online-charts/', coachGapMs = 0, maxRetries = 1, requestTimeoutMs = 12000, fetchFn = globalThis.fetch.bind(globalThis) }) {
+  constructor({ base, endpoints, via = 'proxy', chartsUrl = 'https://www.irctc.co.in/online-charts/', extensionUrl = null, coachGapMs = 0, maxRetries = 1, requestTimeoutMs = 12000, fetchFn = globalThis.fetch.bind(globalThis) }) {
     if (!base) throw new Error('IrctcProvider needs a base URL.');
     this.base = base.endsWith('/') ? base : `${base}/`;
     this.endpoints = endpoints;
     this.via = via;
     this.chartsUrl = chartsUrl;
+    this.extensionUrl = extensionUrl;
     this.coachGapMs = coachGapMs;
     this.maxRetries = maxRetries;
     // Akamai's edge holds a doomed request ~60s before returning 504, so without a client
@@ -247,10 +248,16 @@ export class IrctcProvider {
           continue;
         }
         if (err?.name === 'AbortError') throw err;
-        lastErr = new ProviderError(`Could not reach Nishchit's data server for ${what}.`, 'network', meta({
-          hint: 'Check your internet connection and try again.',
-          cause: err,
-        }));
+        lastErr = via === 'extension'
+          ? new ProviderError(`The Nishchit extension could not fetch ${what} from IRCTC.`, 'network', meta({
+            hint: 'Check your internet connection, reload this page and try again.',
+            detail: err?.message,
+            cause: err,
+          }))
+          : new ProviderError(`Could not reach Nishchit's data server for ${what}.`, 'network', meta({
+            hint: 'Check your internet connection and try again.',
+            cause: err,
+          }));
         continue;
       } finally {
         deadline.clear();
@@ -268,7 +275,9 @@ export class IrctcProvider {
             blocked.reference ? `Akamai reference #${blocked.reference}` : null,
             blocked.since ? `blocked since ${blocked.since}` : null,
           ].filter(Boolean).join(', '),
-          hint: `Check the chart directly on IRCTC: ${this.chartsUrl}. You can try Nishchit again in about ${Math.round((blocked.retryAfterSeconds ?? 120) / 60)} min.`,
+          hint: this.extensionUrl
+            ? `Install the Nishchit browser extension to read the chart from your own browser instead: ${this.extensionUrl}. Or check the chart directly on IRCTC: ${this.chartsUrl}`
+            : `Check the chart directly on IRCTC: ${this.chartsUrl}. You can try Nishchit again in about ${Math.round((blocked.retryAfterSeconds ?? 120) / 60)} min.`,
         }));
       }
       if (RETRY_STATUS.has(status)) {
@@ -283,7 +292,9 @@ export class IrctcProvider {
         throw new ProviderError(`IRCTC refused the request for ${what} (HTTP ${status}).`, 'forbidden', meta({
           status,
           detail: describeBody(text),
-          hint: `Check the chart directly on IRCTC: ${this.chartsUrl}`,
+          hint: via === 'extension'
+            ? `Open IRCTC's chart page in this browser (${this.chartsUrl}), look up any chart there, then search again.`
+            : `Check the chart directly on IRCTC: ${this.chartsUrl}`,
         }));
       }
       if (status === 429) {

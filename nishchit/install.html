@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Install Nishchit Extension</title>
+  <meta name="description" content="Download the Nishchit browser extension for Chrome, Edge, Brave or Opera on Mac, Windows, Linux or ChromeOS, so Nishchit can read the live chart from your own browser." />
+  <meta name="theme-color" content="#f8fafc" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/install.css" />
+  <script type="module" src="js/install.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="./" aria-label="Nishchit home">
+        <span class="brand__mark" aria-hidden="true">नि</span>
+        <span class="brand__name">Nish<span class="accent">chit</span></span>
+      </a>
+      <a class="back-link" href="./">&larr; Back to search</a>
+    </div>
+  </header>
+
+  <main id="main" class="install container">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">browser extension</p>
+      <h1 id="page-title" class="hero__title">Get live charts<br><span class="accent">in your browser.</span></h1>
+      <p class="hero__lead">IRCTC blocks servers from reading the chart, but it answers your own browser. The free Nishchit extension reads the chart from your browser and hands it to Nishchit. No account, no tracking.</p>
+    </section>
+
+    <div id="ext-status" class="ext-status" role="status" hidden></div>
+
+    <p id="for-you" class="for-you" hidden></p>
+
+    <div id="platforms" class="platforms">
+
+      <!-- Chrome-family desktop: the one that works today -->
+      <section id="chromium" class="card platform" data-platform="chromium" aria-labelledby="chromium-title">
+        <div class="platform__head">
+          <h2 id="chromium-title">Chrome, Edge, Brave, Opera, Vivaldi</h2>
+          <p class="platform__where">Mac · Windows · Linux · ChromeOS</p>
+        </div>
+
+        <a id="download" class="btn btn--primary btn--block" href="downloads/nishchit-extension-chrome.zip" download>
+          Download extension (.zip)
+        </a>
+        <p class="platform__meta"><span id="version-label">Free</span> · 15 KB · <a href="https://github.com/krupalvora/krupalvora.github.io/tree/main/nishchit/extension">source code</a></p>
+
+        <ol class="steps">
+          <li>
+            <strong>Unzip it.</strong> You get a folder called <code>nishchit-extension</code>.
+            <ul class="os-notes">
+              <li data-os="mac"><span class="os">Mac</span> Double-click the zip in Downloads.</li>
+              <li data-os="windows"><span class="os">Windows</span> Right-click the zip → <em>Extract All…</em> → <em>Extract</em>.</li>
+              <li data-os="linux"><span class="os">Linux</span> <code>unzip nishchit-extension-chrome.zip</code></li>
+              <li data-os="chromeos"><span class="os">ChromeOS</span> Open the zip in Files, then copy the <code>nishchit-extension</code> folder into <em>My files</em>.</li>
+            </ul>
+            Move the folder somewhere it can stay, like Documents. The browser loads the extension from it, so don't delete it.
+          </li>
+          <li>
+            <strong>Open your browser's extensions page.</strong> Paste this into the address bar:
+            <span class="copy-row">
+              <code id="ext-url">chrome://extensions</code>
+              <button type="button" class="btn btn--sm" id="copy-ext-url">Copy</button>
+            </span>
+          </li>
+          <li><strong>Turn on <em>Developer mode</em>.</strong> <span id="devmode-where">It's a switch in the top-right corner.</span></li>
+          <li><strong>Click <em>Load unpacked</em></strong> and choose the <code>nishchit-extension</code> folder.</li>
+          <li><strong>Reload this page.</strong> The box at the top turns green. Your searches then show <em>Live · your browser</em>.</li>
+        </ol>
+
+        <details class="more">
+          <summary>Updating to a new version</summary>
+          <p>Download the zip again and replace the old <code>nishchit-extension</code> folder with the new one. Then, on the extensions page, click the reload arrow ↻ on Nishchit's card.</p>
+        </details>
+        <details class="more">
+          <summary>Removing it</summary>
+          <p>On the extensions page, click <em>Remove</em> on Nishchit's card, then delete the folder.</p>
+        </details>
+      </section>
+
+      <section id="firefox" class="card platform platform--soon" data-platform="firefox" aria-labelledby="firefox-title">
+        <div class="platform__head">
+          <h2 id="firefox-title">Firefox</h2>
+          <p class="platform__where">Mac · Windows · Linux · Android</p>
+          <span class="badge">Coming soon</span>
+        </div>
+        <p>Firefox only installs add-ons that Mozilla has checked and signed, so it can't be added from a download here. Nishchit is being submitted to Firefox Add-ons. Once it's approved, you'll be able to install it from this page with one click, on computers and Android phones.</p>
+      </section>
+
+      <section id="android" class="card platform platform--soon" data-platform="android" aria-labelledby="android-title">
+        <div class="platform__head">
+          <h2 id="android-title">Android phones and tablets</h2>
+          <span class="badge">Coming soon</span>
+        </div>
+        <p>Chrome on Android doesn't support extensions. Nishchit will work on Android through <strong>Firefox for Android</strong> once it's on Firefox Add-ons (see above).</p>
+        <p>For now, use Nishchit on a computer, or <a href="https://www.irctc.co.in/online-charts/">check the chart on IRCTC</a> directly.</p>
+      </section>
+
+      <section id="ios" class="card platform platform--soon" data-platform="ios" aria-labelledby="ios-title">
+        <div class="platform__head">
+          <h2 id="ios-title">iPhone and iPad</h2>
+          <span class="badge badge--muted">Not available</span>
+        </div>
+        <p>On iPhone and iPad, browser extensions can only come from the App Store, so Nishchit can't offer one there yet. Use Nishchit on a computer, or <a href="https://www.irctc.co.in/online-charts/">check the chart on IRCTC</a> directly.</p>
+      </section>
+
+      <section id="safari" class="card platform platform--soon" data-platform="safari" aria-labelledby="safari-title">
+        <div class="platform__head">
+          <h2 id="safari-title">Safari on Mac</h2>
+          <span class="badge badge--muted">Not available</span>
+        </div>
+        <p>Safari extensions have to come from the App Store. On a Mac, use Chrome, Edge or Brave with the download above.</p>
+      </section>
+    </div>
+
+    <section class="card about" aria-labelledby="about-title">
+      <h2 id="about-title">What the extension does</h2>
+      <ul>
+        <li>When you search on Nishchit, it fetches that train's public chart from IRCTC, from your own browser.</li>
+        <li>It works only on the Nishchit website and only reads the public chart. It can't see your IRCTC login, bookings or other tabs.</li>
+        <li>Sometimes IRCTC only answers from its own chart page. Then the extension opens that page in a background tab, which closes itself after a couple of minutes.</li>
+        <li>Nothing is collected or sent anywhere except IRCTC. <a href="privacy.html">Privacy policy</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Not affiliated with IRCTC or Indian Railways. A plan is not a ticket.</strong></p>
+    <p><a href="./">Search</a> · <a href="privacy.html">Privacy</a></p>
+  </footer>
+</body>
+</html>

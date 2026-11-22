@@ -11,7 +11,9 @@
     "serve:live": "node server.mjs",
     "serve:auto": "IRCTC_AUTO=1 node server.mjs",
     "worker:dev": "npx wrangler dev --config worker/wrangler.toml",
-    "worker:deploy": "npx wrangler deploy --config worker/wrangler.toml"
+    "worker:deploy": "npx wrangler deploy --config worker/wrangler.toml",
+    "extension:icons": "node scripts/make-extension-icons.mjs",
+    "extension:zip": "node scripts/package-extension.mjs"
   },
   "engines": {
     "node": ">=20"

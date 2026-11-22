@@ -417,3 +417,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- "Get the extension" notice (index.html, shown when it isn't installed) ---------- */
+.extension-notice {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.extension-notice a {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.site-footer a {
+  color: inherit;
+}

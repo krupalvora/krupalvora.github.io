@@ -32,4 +32,14 @@ export const CONFIG = Object.freeze({
   },
 
   chartsUrl: 'https://www.irctc.co.in/online-charts/',
+
+  /**
+   * The browser extension (extension/) fetches the chart from the user's own browser, so IRCTC's
+   * block on servers doesn't apply. When installed, the page uses it instead of the Worker.
+   * installUrl is the download + instructions page (install.html), for every browser.
+   */
+  extension: {
+    installUrl: 'https://krupalvora.github.io/nishchit/install.html',
+    requestTimeoutMs: 30000, // the first call may wait for an IRCTC tab to load
+  },
 });
