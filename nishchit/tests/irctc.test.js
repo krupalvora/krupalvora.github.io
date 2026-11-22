@@ -58,6 +58,28 @@ test('mapSchedule rejects a response with no stations', () => {
   assert.throws(() => mapSchedule({ trainNumber: '1', stationList: [] }), /station list/);
 });
 
+test('mapSchedule tolerates inconsistent dayCount, 24:00 and time-less stops (multi-day trains)', () => {
+  const train = mapSchedule({
+    trainNumber: '22503',
+    trainName: 'VIVEK EXP',
+    stationList: [
+      { stationCode: 'CAPE', stationName: 'KANYAKUMARI', arrivalTime: '--', departureTime: '17:15', dayCount: '1', distance: '0' },
+      { stationCode: 'XX', stationName: 'NO TIMES', arrivalTime: '--', departureTime: '--', dayCount: '1', distance: '50' },
+      { stationCode: 'P', stationName: 'P', arrivalTime: '22:00', departureTime: '22:05', dayCount: '1', distance: '300' },
+      // halt crosses midnight, labelled with the departure day
+      { stationCode: 'Q', stationName: 'Q', arrivalTime: '23:55', departureTime: '00:10', dayCount: '2', distance: '400' },
+      { stationCode: 'R', stationName: 'R', arrivalTime: '01:30', departureTime: '01:35', dayCount: '2', distance: '480' },
+      { stationCode: 'S', stationName: 'S', arrivalTime: '24:00', departureTime: '00:05', dayCount: '3', distance: '1500' },
+      { stationCode: 'DBRG', stationName: 'DIBRUGARH', arrivalTime: '07:00', departureTime: '--', dayCount: '3', distance: '1700' },
+    ],
+  });
+  assert.deepEqual(train.route.map((s) => s.code), ['CAPE', 'P', 'Q', 'R', 'S', 'DBRG']);
+  assert.deepEqual(train.route.map((s) => s.day), [1, 1, 1, 2, 3, 3]);
+  for (let i = 1; i < train.route.length; i++) {
+    assert.ok(train.route[i].arrAbs >= train.route[i - 1].depAbs);
+  }
+});
+
 const route4 = () =>
   normalizeRoute([
     { code: 'A', name: 'A', arr: null, dep: '08:00', day: 1, km: 0 },
