@@ -31,7 +31,7 @@
     { "label": "Skills", "href": "#skills" },
     { "label": "Writing", "href": "#writing" },
     { "label": "Contact", "href": "#contact" },
-    { "label": "Nishchit", "href": "nischit/" },
+    { "label": "Nishchit", "href": "nishchit/" },
     { "label": "Resume Builder", "href": "build-resume/" }
   ],
   "hero": {
