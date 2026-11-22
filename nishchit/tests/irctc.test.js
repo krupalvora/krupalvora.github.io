@@ -387,6 +387,34 @@ test('a coach IRCTC fails to return becomes a visible warning, not silent data l
   assert.deepEqual(chart.warnings, ['Coach B2: Coach data unavailable — its berths are not shown.']);
 });
 
+test('a coach that times out is dropped with a warning; the other coaches still render', async () => {
+  const p = new IrctcProvider({
+    base: 'https://proxy.example/',
+    maxRetries: 1,
+    requestTimeoutMs: 40, // fast deadline
+    endpoints: { schedule: 'eticketing/protected/mapps1/trnscheduleenquiry/{train}', trainComposition: 'online-charts/api/trainComposition', coachComposition: 'online-charts/api/coachComposition' },
+    fetchFn: (url, init) => {
+      if (String(url).endsWith('/trainComposition')) {
+        return Promise.resolve(jsonRes({ cdd: [{ coachName: 'B1', classCode: '3A' }, { coachName: 'B2', classCode: '3A' }], from: 'A', remote: 'A', chartOneDate: 'x' }));
+      }
+      const coach = JSON.parse(init.body).coach;
+      if (coach === 'B2') {
+        // Never answers until aborted — exactly the Akamai 504 hang the timeout guards against.
+        return new Promise((_r, reject) => init.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true }));
+      }
+      return Promise.resolve(jsonRes({ coachName: coach, bdd: [{ berthNo: 1, berthCode: 'L', bsd: [{ from: 'A', to: 'D', occupancy: false }] }] }));
+    },
+  });
+  p.coachGapMs = 0;
+  const t0 = performance.now();
+  const chart = await p.getChart({ train: { number: '19017', route: route4() }, date: '2026-11-21' });
+  const elapsed = performance.now() - t0;
+  assert.equal(chart.berths.length, 1); // B1 still rendered
+  assert.equal(chart.warnings.length, 1);
+  assert.match(chart.warnings[0], /^Coach B2:.*timed out/);
+  assert.ok(elapsed < 2000, `one hung coach should not stall the chart (took ${Math.round(elapsed)}ms)`);
+});
+
 test('getChart emits a partial chart after each coach (progressive rendering)', async () => {
   const p = provider(async (url, init) => {
     if (String(url).endsWith('/trainComposition')) {

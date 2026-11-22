@@ -124,22 +124,34 @@ export class IrctcProvider {
     for (const [i, coach] of wanted.entries()) {
       if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
       if (i > 0 && this.coachGapMs) await delay(this.coachGapMs, signal);
-      const raw = await this.post(
-        this.endpoints.coachComposition,
-        {
-          trainNo: train.number,
-          jDate: date,
-          boardingStation: boarding,
-          remoteStation: remote,
-          trainSourceStation: source,
-          coach: coach.coach,
-          cls: coach.cls,
-        },
-        signal,
-        `coach ${coach.coach}`,
-      );
+      let raw = null;
+      try {
+        raw = await this.post(
+          this.endpoints.coachComposition,
+          {
+            trainNo: train.number,
+            jDate: date,
+            boardingStation: boarding,
+            remoteStation: remote,
+            trainSourceStation: source,
+            coach: coach.coach,
+            cls: coach.cls,
+          },
+          signal,
+          `coach ${coach.coach}`,
+        );
+      } catch (err) {
+        if (err?.name === 'AbortError') throw err;
+        // A whole-session failure (IRCTC blocking us, or refusing auth) will hit every coach —
+        // surface it instead of degrading into a chart that's missing everything. A per-coach
+        // timeout or transient error, though, just drops that one coach: the rest still render.
+        if (err.code === 'blocked' || err.code === 'forbidden') throw err;
+        warnings.push(`Coach ${coach.coach}: ${err.message} — its berths are not shown.`);
+      }
       // One coach failing should not sink the whole chart, but the user must know it's missing.
-      if (raw === null || raw?.error) warnings.push(`Coach ${coach.coach}: ${raw?.error ?? 'IRCTC returned no data'} — its berths are not shown.`);
+      if (!warnings.some((w) => w.startsWith(`Coach ${coach.coach}:`)) && (raw === null || raw?.error)) {
+        warnings.push(`Coach ${coach.coach}: ${raw?.error ?? 'IRCTC returned no data'} — its berths are not shown.`);
+      }
       coachCharts.set(coach.coach, parseCoachComposition(raw));
       if (onProgress && !signal?.aborted) {
         const partial = { ...assembleChart(composition, coachCharts, train.route), via: this.via, warnings: [...warnings], partial: i + 1 < wanted.length };
