@@ -5,8 +5,13 @@
   <title>Nishchit has moved</title>
   <meta name="robots" content="noindex" />
   <link rel="canonical" href="https://krupalvora.github.io/nischit/" />
-  <meta http-equiv="refresh" content="0; url=../nischit/" />
-  <script>location.replace('../nischit/' + location.search + location.hash);</script>
+  <noscript><meta http-equiv="refresh" content="0; url=../nischit/" /></noscript>
+  <script>
+    // Extensions before 1.2.0 only run on this old address; tell the new site so it can ask for an update.
+    var q = new URLSearchParams(location.search), v = document.documentElement.dataset.nishchitExtension;
+    if (v) q.set('oldext', v);
+    location.replace('../nischit/' + (q.toString() ? '?' + q : '') + location.hash);
+  </script>
 </head>
 <body>
   <p>Nishchit has moved to <a href="../nischit/">krupalvora.github.io/nischit/</a>.</p>
