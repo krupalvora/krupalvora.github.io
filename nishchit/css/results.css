@@ -295,9 +295,12 @@
 .ribbon__seg-label {
   position: absolute;
   bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  text-align: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* never spill into neighbouring segments */
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;

@@ -360,11 +360,13 @@ function ribbon(route, plan) {
     if (leg.gap) {
       track.push(h('div', { class: 'ribbon__seg ribbon__seg--gap', style: `flex: ${grow} 1 0` }, h('span', { class: 'ribbon__seg-label' }, 'stand')));
     } else {
-      const label = leg.berths.map((b) => `${b.coach}·${b.number}`).join(' ');
+      const full = leg.berths.map((b) => `${b.coach}·${b.number}`).join(' ');
+      // One berth: show it. Several: just the coaches (full list is in the leg card + tooltip).
+      const label = leg.berths.length === 1 ? full : [...new Set(leg.berths.map((b) => b.coach))].join(' ');
       track.push(
         h(
           'div',
-          { class: `ribbon__seg ribbon__seg--${seatIdx % 2 === 0 ? 'a' : 'b'}`, style: `flex: ${grow} 1 0` },
+          { class: `ribbon__seg ribbon__seg--${seatIdx % 2 === 0 ? 'a' : 'b'}`, style: `flex: ${grow} 1 0`, title: full },
           h('span', { class: 'ribbon__seg-label' }, label),
         ),
       );
