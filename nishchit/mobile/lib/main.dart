@@ -24,13 +24,15 @@ import 'package:url_launcher/url_launcher.dart';
 import 'config.dart';
 import 'irctc_fetcher.dart';
 import 'rules_store.dart';
+import 'search_notifier.dart';
 
 final _server = InAppLocalhostServer(documentRoot: 'assets/web', port: localPort, shared: true);
 final _rules = RulesStore();
+final _notifier = SearchNotifier();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([_server.start(), _rules.init()]);
+  await Future.wait([_server.start(), _rules.init(), _notifier.init()]);
   runApp(const NishchitApp());
 }
 
@@ -73,6 +75,7 @@ class _NishchitPageState extends State<NishchitPage> {
   @override
   void dispose() {
     _fetcher.dispose();
+    _notifier.dispose();
     super.dispose();
   }
 
@@ -87,6 +90,19 @@ class _NishchitPageState extends State<NishchitPage> {
       return {'status': 400, 'text': jsonEncode({'error': 'Bad request: ${err.message}'})};
     } catch (err) {
       return {'error': '$err'.replaceFirst('Exception: ', '')};
+    }
+  }
+
+  /// Search lifecycle from the page (js/app/notify.js), for the "chart is ready" notification.
+  Future<void> _handleEvent(InAppWebViewController controller, List<dynamic> args) async {
+    if (args.isEmpty || args.first is! Map || !_isNishchitPage(await controller.getUrl())) return;
+    final msg = args.first as Map;
+    String text(Object? v, int max) => '${v ?? ''}'.length > max ? '${'$v'.substring(0, max)}…' : '${v ?? ''}';
+    switch (msg['type']) {
+      case 'nishchit:search-started':
+        await _notifier.searchStarted();
+      case 'nishchit:search-done':
+        await _notifier.searchDone(text(msg['title'], 80), text(msg['body'], 300));
     }
   }
 
@@ -147,6 +163,10 @@ class _NishchitPageState extends State<NishchitPage> {
                       handlerName: 'nishchitFetch',
                       callback: (args) => _handleFetch(controller, args),
                     );
+                    controller.addJavaScriptHandler(
+                      handlerName: 'nishchitEvent',
+                      callback: (args) => _handleEvent(controller, args),
+                    );
                   },
                   shouldOverrideUrlLoading: _route,
                   // target=_blank links (e.g. "Check the chart on IRCTC") open in the browser.
@@ -200,6 +220,10 @@ final _bridgeScript = '''
     if (event.source !== window || event.origin !== origin) return;
     const msg = event.data;
     if (msg && msg.type === 'nishchit:ping') { post({ type: 'nishchit:ready', version }); return; }
+    if (msg && (msg.type === 'nishchit:search-started' || msg.type === 'nishchit:search-done')) {
+      bridge.then((b) => b.callHandler('nishchitEvent', { type: msg.type, title: msg.title, body: msg.body }));
+      return;
+    }
     if (!msg || msg.type !== 'nishchit:fetch' || typeof msg.id !== 'string') return;
     bridge
       .then((b) => b.callHandler('nishchitFetch', msg.request))

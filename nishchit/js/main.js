@@ -1,4 +1,5 @@
 import { CONFIG } from './config.js';
+import { notifySearchDone, notifySearchStarted, summarizeError, summarizeResult } from './app/notify.js';
 import { buildSearchResult } from './app/search.js';
 import { createExtensionFetch, detectExtension, IRCTC_BASE, isNativeApp } from './data/extensionBridge.js';
 import { IrctcProvider } from './data/irctcProvider.js';
@@ -50,6 +51,7 @@ async function bootstrap() {
 
     form.setBusy(true);
     results.renderLoading(query);
+    notifySearchStarted();
     try {
       const train = await provider.getTrain(query.train, { signal: controller.signal });
       if (!train) throw new ProviderError(`IRCTC has no train numbered ${query.train}.`, 'not-found', { via: provider.via, hint: 'Check the train number.' });
@@ -66,11 +68,16 @@ async function bootstrap() {
           else results.renderLoading(query, { done, total });
         },
       });
-      if (!controller.signal.aborted) results.render(view(chart));
+      if (!controller.signal.aborted) {
+        const finished = view(chart);
+        results.render(finished);
+        notifySearchDone(summarizeResult(finished));
+      }
     } catch (err) {
       if (err?.name === 'AbortError') return;
       if (err?.code !== 'needs-extension') reportError(err, { query });
       results.renderError(err);
+      notifySearchDone(summarizeError(err, query));
     } finally {
       if (inFlight === controller) {
         inFlight = null;

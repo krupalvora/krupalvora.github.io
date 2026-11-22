@@ -27,6 +27,14 @@ grep -q 'networkSecurityConfig' "$manifest" || \
   perl -0pi -e 's#<application\b#<application android:networkSecurityConfig="\@xml/network_security_config"#' "$manifest"
 perl -pi -e 's#android:label="nishchit"#android:label="Nishchit"#' "$manifest"
 
+# Android Gradle: flutter_local_notifications needs compileSdk 37+ and core library desugaring.
+gradle=android/app/build.gradle.kts
+perl -pi -e 's#compileSdk = flutter\.compileSdkVersion#compileSdk = 37 // flutter_local_notifications needs 37+#' "$gradle"
+grep -q 'isCoreLibraryDesugaringEnabled' "$gradle" || \
+  perl -0pi -e 's#(targetCompatibility = JavaVersion\.VERSION_\d+\n)#$1        isCoreLibraryDesugaringEnabled = true // flutter_local_notifications\n#' "$gradle"
+grep -q 'coreLibraryDesugaring(' "$gradle" || \
+  printf '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n' >> "$gradle"
+
 # iOS: allow the localhost server (App Transport Security), display name.
 plist=ios/Runner/Info.plist
 /usr/libexec/PlistBuddy -c 'Delete :NSAppTransportSecurity' "$plist" 2>/dev/null || true
