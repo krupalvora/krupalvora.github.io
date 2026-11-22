@@ -21,9 +21,11 @@ html {
   }
 }
 
+/* clip, not hidden: hidden on html+body makes body a scroll container, which breaks the
+   sticky search column on wide screens. */
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {

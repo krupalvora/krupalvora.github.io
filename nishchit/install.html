@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Install Nishchit Extension</title>
-  <meta name="description" content="Download the Nishchit browser extension for Chrome, Edge, Brave or Opera on Mac, Windows, Linux or ChromeOS, so Nishchit can read the live chart from your own browser." />
+  <meta name="description" content="Add the free Nishchit extension to Chrome, Edge, Brave or Opera on Mac, Windows, Linux or ChromeOS in five short steps, so Nishchit can read the live chart from your own browser." />
   <meta name="theme-color" content="#f8fafc" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +18,7 @@
 </head>
 <body>
   <header class="site-header">
-    <div class="site-header__inner">
+    <div class="site-header__inner install-header">
       <a class="brand" href="./" aria-label="Nishchit home">
         <span class="brand__mark" aria-hidden="true">नि</span>
         <span class="brand__name">Nish<span class="accent">chit</span></span>
@@ -27,105 +27,186 @@
     </div>
   </header>
 
-  <main id="main" class="install container">
-    <section class="hero" aria-labelledby="page-title">
+  <main id="main" class="install">
+    <section class="install-hero" aria-labelledby="page-title">
       <p class="eyebrow">browser extension</p>
-      <h1 id="page-title" class="hero__title">Get live charts<br><span class="accent">in your browser.</span></h1>
-      <p class="hero__lead">IRCTC blocks servers from reading the chart, but it answers your own browser. The free Nishchit extension reads the chart from your browser and hands it to Nishchit. No account, no tracking.</p>
+      <h1 id="page-title" class="install-hero__title">Add Nishchit to your browser</h1>
+      <p class="install-hero__lead">IRCTC only shares the live chart with your own browser, so Nishchit needs a small free extension to read it. It takes about two minutes, once.</p>
+      <ul class="trust">
+        <li>Free</li>
+        <li>No account</li>
+        <li>No tracking</li>
+        <li>Works only on Nishchit</li>
+      </ul>
     </section>
 
     <div id="ext-status" class="ext-status" role="status" hidden></div>
 
-    <p id="for-you" class="for-you" hidden></p>
+    <!-- Shown first for browsers that can't take the extension (filled by install.js). -->
+    <div id="not-here" class="card not-here" hidden></div>
 
-    <div id="platforms" class="platforms">
-
-      <!-- Chrome-family desktop: the one that works today -->
-      <section id="chromium" class="card platform" data-platform="chromium" aria-labelledby="chromium-title">
-        <div class="platform__head">
-          <h2 id="chromium-title">Chrome, Edge, Brave, Opera, Vivaldi</h2>
-          <p class="platform__where">Mac · Windows · Linux · ChromeOS</p>
+    <!-- The installer: Chrome, Edge, Brave, Opera, Vivaldi on a computer. -->
+    <section id="wizard" class="card wizard wizard--all" aria-labelledby="wizard-title">
+      <header class="wizard__head">
+        <div>
+          <h2 id="wizard-title">Install on <span id="browser-name">Chrome, Edge, Brave or Opera</span></h2>
+          <p class="wizard__where">Mac · Windows · Linux · ChromeOS</p>
         </div>
-
-        <a id="download" class="btn btn--primary btn--block" href="downloads/nishchit-extension-chrome.zip" download>
-          Download extension (.zip)
-        </a>
-        <p class="platform__meta"><span id="version-label">Free</span> · 15 KB · <a href="https://github.com/krupalvora/krupalvora.github.io/tree/main/nishchit/extension">source code</a></p>
-
-        <ol class="steps">
-          <li>
-            <strong>Unzip it.</strong> You get a folder called <code>nishchit-extension</code>.
-            <ul class="os-notes">
-              <li data-os="mac"><span class="os">Mac</span> Double-click the zip in Downloads.</li>
-              <li data-os="windows"><span class="os">Windows</span> Right-click the zip → <em>Extract All…</em> → <em>Extract</em>.</li>
-              <li data-os="linux"><span class="os">Linux</span> <code>unzip nishchit-extension-chrome.zip</code></li>
-              <li data-os="chromeos"><span class="os">ChromeOS</span> Open the zip in Files, then copy the <code>nishchit-extension</code> folder into <em>My files</em>.</li>
-            </ul>
-            Move the folder somewhere it can stay, like Documents. The browser loads the extension from it, so don't delete it.
-          </li>
-          <li>
-            <strong>Open your browser's extensions page.</strong> Paste this into the address bar:
-            <span class="copy-row">
-              <code id="ext-url">chrome://extensions</code>
-              <button type="button" class="btn btn--sm" id="copy-ext-url">Copy</button>
-            </span>
-          </li>
-          <li><strong>Turn on <em>Developer mode</em>.</strong> <span id="devmode-where">It's a switch in the top-right corner.</span></li>
-          <li><strong>Click <em>Load unpacked</em></strong> and choose the <code>nishchit-extension</code> folder.</li>
-          <li><strong>Reload this page.</strong> The box at the top turns green. Your searches then show <em>Live · your browser</em>.</li>
+        <ol class="wizard__progress" aria-label="Steps">
+          <li data-dot="1"><span class="sr-only">Step 1</span></li>
+          <li data-dot="2"><span class="sr-only">Step 2</span></li>
+          <li data-dot="3"><span class="sr-only">Step 3</span></li>
+          <li data-dot="4"><span class="sr-only">Step 4</span></li>
+          <li data-dot="5"><span class="sr-only">Step 5</span></li>
         </ol>
+      </header>
 
-        <details class="more">
-          <summary>Updating to a new version</summary>
-          <p>Download the zip again and replace the old <code>nishchit-extension</code> folder with the new one. Then, on the extensions page, click the reload arrow ↻ on Nishchit's card.</p>
+      <!-- Step 1 -->
+      <section class="step" data-step="1" aria-labelledby="s1-title">
+        <p class="step__count">Step 1 of 5</p>
+        <h3 id="s1-title" class="step__title">Download the extension</h3>
+        <p class="step__text">It's a small zip file (15 KB) that goes to your Downloads folder.</p>
+        <a id="download" class="btn btn--primary btn--block" href="downloads/nishchit-extension-chrome.zip" download>
+          <span data-icon="download"></span>Download Nishchit extension
+        </a>
+        <p class="step__meta"><span id="version-label">Latest version</span> · <a href="https://github.com/krupalvora/krupalvora.github.io/tree/main/nishchit/extension">source code</a></p>
+      </section>
+
+      <!-- Step 2 -->
+      <section class="step" data-step="2" aria-labelledby="s2-title">
+        <p class="step__count">Step 2 of 5</p>
+        <h3 id="s2-title" class="step__title">Unzip it and keep the folder</h3>
+        <p class="step__text" id="unzip-text">Open your Downloads folder and unzip <code>nishchit-extension-chrome.zip</code>.</p>
+        <div class="mock mock--files" aria-hidden="true">
+          <div class="file"><span class="file__icon file__icon--zip">ZIP</span><span>nishchit-extension-chrome.zip</span></div>
+          <span class="mock__arrow">→</span>
+          <div class="file file--hl"><span class="file__icon file__icon--folder"></span><span>nishchit-extension</span></div>
+        </div>
+        <p class="step__tip"><strong>Keep the <code>nishchit-extension</code> folder.</strong> Move it to Documents if you like, but don't delete it: your browser runs the extension from there.</p>
+        <details class="other-os">
+          <summary>How to unzip on other computers</summary>
+          <ul>
+            <li><strong>Mac:</strong> double-click the zip.</li>
+            <li><strong>Windows:</strong> right-click the zip → <em>Extract All…</em> → <em>Extract</em>.</li>
+            <li><strong>ChromeOS:</strong> open the zip in Files, then copy the folder into <em>My files</em>.</li>
+            <li><strong>Linux:</strong> <code>unzip nishchit-extension-chrome.zip</code></li>
+          </ul>
         </details>
-        <details class="more">
-          <summary>Removing it</summary>
-          <p>On the extensions page, click <em>Remove</em> on Nishchit's card, then delete the folder.</p>
-        </details>
       </section>
 
-      <section id="firefox" class="card platform platform--soon" data-platform="firefox" aria-labelledby="firefox-title">
-        <div class="platform__head">
-          <h2 id="firefox-title">Firefox</h2>
-          <p class="platform__where">Mac · Windows · Linux · Android</p>
-          <span class="badge">Coming soon</span>
+      <!-- Step 3 -->
+      <section class="step" data-step="3" aria-labelledby="s3-title">
+        <p class="step__count">Step 3 of 5</p>
+        <h3 id="s3-title" class="step__title">Open the extensions page</h3>
+        <p class="step__text">Browsers don't let websites link to this page, so copy the address and paste it into a new tab.</p>
+        <div class="copy-box">
+          <code id="ext-url">chrome://extensions</code>
+          <button type="button" class="btn btn--sm copy-box__btn" id="copy-ext-url"><span data-icon="copy"></span><span>Copy</span></button>
         </div>
-        <p>Firefox only installs add-ons that Mozilla has checked and signed, so it can't be added from a download here. Nishchit is being submitted to Firefox Add-ons. Once it's approved, you'll be able to install it from this page with one click, on computers and Android phones.</p>
+        <ol class="keys" id="keys">
+          <li>Open a new tab: <kbd data-key="mod">Ctrl</kbd> <kbd>T</kbd></li>
+          <li>Paste: <kbd data-key="mod">Ctrl</kbd> <kbd>V</kbd></li>
+          <li>Press <kbd>Enter</kbd></li>
+        </ol>
       </section>
 
-      <section id="android" class="card platform platform--soon" data-platform="android" aria-labelledby="android-title">
-        <div class="platform__head">
-          <h2 id="android-title">Android phones and tablets</h2>
-          <span class="badge">Coming soon</span>
+      <!-- Step 4 -->
+      <section class="step" data-step="4" aria-labelledby="s4-title">
+        <p class="step__count">Step 4 of 5</p>
+        <h3 id="s4-title" class="step__title">Turn on Developer mode</h3>
+        <p class="step__text" id="devmode-text">It's a switch in the top-right corner of the extensions page.</p>
+        <div class="mock mock--page" aria-hidden="true">
+          <div class="mock__bar">
+            <span class="mock__title">Extensions</span>
+            <span class="mock__search"></span>
+            <span class="mock__toggle mock__hl"><span>Developer mode</span><span class="switch-ui"></span></span>
+          </div>
+          <div class="mock__body">
+            <span class="mock__line"></span><span class="mock__line mock__line--short"></span>
+          </div>
         </div>
-        <p>Chrome on Android doesn't support extensions. Nishchit will work on Android through <strong>Firefox for Android</strong> once it's on Firefox Add-ons (see above).</p>
-        <p>For now, use Nishchit on a computer, or <a href="https://www.irctc.co.in/online-charts/">check the chart on IRCTC</a> directly.</p>
+        <p class="step__tip">This only lets you add extensions from a folder. It doesn't change anything else.</p>
       </section>
 
-      <section id="ios" class="card platform platform--soon" data-platform="ios" aria-labelledby="ios-title">
-        <div class="platform__head">
-          <h2 id="ios-title">iPhone and iPad</h2>
-          <span class="badge badge--muted">Not available</span>
+      <!-- Step 5 -->
+      <section class="step" data-step="5" aria-labelledby="s5-title">
+        <p class="step__count">Step 5 of 5</p>
+        <h3 id="s5-title" class="step__title">Click “Load unpacked” and pick the folder</h3>
+        <p class="step__text">A button row appears under the title. Click <strong>Load unpacked</strong>, choose the <code>nishchit-extension</code> folder, then click <strong>Select</strong>.</p>
+        <div class="mock mock--page" aria-hidden="true">
+          <div class="mock__bar">
+            <span class="mock__btn mock__hl">Load unpacked</span>
+            <span class="mock__btn">Pack extension</span>
+            <span class="mock__btn">Update</span>
+          </div>
+          <div class="mock__picker">
+            <div class="mock__row"><span class="file__icon file__icon--folder"></span>Documents</div>
+            <div class="mock__row mock__row--hl"><span class="file__icon file__icon--folder"></span>nishchit-extension</div>
+            <div class="mock__row"><span class="file__icon file__icon--folder"></span>Pictures</div>
+            <div class="mock__picker-foot"><span class="mock__btn mock__btn--primary">Select</span></div>
+          </div>
         </div>
-        <p>On iPhone and iPad, browser extensions can only come from the App Store, so Nishchit can't offer one there yet. Use Nishchit on a computer, or <a href="https://www.irctc.co.in/online-charts/">check the chart on IRCTC</a> directly.</p>
+        <div class="done-note">
+          <strong>That's it.</strong> Nishchit opens in a new tab with “You're all set” when the extension is in.
+          <button type="button" class="link-btn" id="check-again">Didn't open? Check again</button>
+        </div>
       </section>
 
-      <section id="safari" class="card platform platform--soon" data-platform="safari" aria-labelledby="safari-title">
-        <div class="platform__head">
-          <h2 id="safari-title">Safari on Mac</h2>
-          <span class="badge badge--muted">Not available</span>
-        </div>
-        <p>Safari extensions have to come from the App Store. On a Mac, use Chrome, Edge or Brave with the download above.</p>
-      </section>
-    </div>
+      <footer class="wizard__nav">
+        <button type="button" class="btn" id="prev">Back</button>
+        <button type="button" class="link-btn" id="show-all">Show all steps</button>
+        <button type="button" class="btn btn--dark" id="next">Next</button>
+      </footer>
+    </section>
+
+    <section class="card help" aria-labelledby="help-title">
+      <h2 id="help-title">Stuck?</h2>
+      <details>
+        <summary>I don't see “Load unpacked”</summary>
+        <p>Developer mode is still off. Turn it on (step 4) and the button row appears.</p>
+      </details>
+      <details>
+        <summary>It says “Manifest file is missing”</summary>
+        <p>You picked the zip, or the folder that contains the folder. Pick the <code>nishchit-extension</code> folder itself: the one with <code>manifest.json</code> directly inside.</p>
+      </details>
+      <details>
+        <summary>Updating to a new version</summary>
+        <p>Download again, replace the old <code>nishchit-extension</code> folder with the new one, then click the reload arrow ↻ on Nishchit's card on the extensions page.</p>
+      </details>
+      <details>
+        <summary>Removing it</summary>
+        <p>On the extensions page, click <em>Remove</em> on Nishchit's card, then delete the folder.</p>
+      </details>
+    </section>
+
+    <section class="others" aria-labelledby="others-title">
+      <h2 id="others-title" class="section-label">Other browsers and devices</h2>
+      <div class="others__grid">
+        <article class="card other" data-platform="firefox">
+          <h3>Firefox <span class="badge">Coming soon</span></h3>
+          <p>Firefox only installs add-ons signed by Mozilla. Nishchit is being submitted to Firefox Add-ons; once approved it installs in one click, on computers and Android.</p>
+        </article>
+        <article class="card other" data-platform="android">
+          <h3>Android <span class="badge">Coming soon</span></h3>
+          <p>Chrome on Android has no extensions. Nishchit will work in <strong>Firefox for Android</strong> once it's on Firefox Add-ons. For now, use a computer or <a href="https://www.irctc.co.in/online-charts/">check the chart on IRCTC</a>.</p>
+        </article>
+        <article class="card other" data-platform="ios">
+          <h3>iPhone and iPad <span class="badge badge--muted">Not available</span></h3>
+          <p>Extensions there only come from the App Store. Use a computer, or <a href="https://www.irctc.co.in/online-charts/">check the chart on IRCTC</a>.</p>
+        </article>
+        <article class="card other" data-platform="safari">
+          <h3>Safari on Mac <span class="badge badge--muted">Not available</span></h3>
+          <p>Safari extensions have to come from the App Store. On a Mac, use Chrome, Edge or Brave with the steps above.</p>
+        </article>
+      </div>
+    </section>
 
     <section class="card about" aria-labelledby="about-title">
       <h2 id="about-title">What the extension does</h2>
       <ul>
         <li>When you search on Nishchit, it fetches that train's public chart from IRCTC, from your own browser.</li>
-        <li>It works only on the Nishchit website and only reads the public chart. It can't see your IRCTC login, bookings or other tabs.</li>
-        <li>Sometimes IRCTC only answers from its own chart page. Then the extension opens that page in a background tab, which closes itself after a couple of minutes.</li>
+        <li>It works only on the Nishchit website. It can't see your IRCTC login, bookings or other tabs.</li>
+        <li>If IRCTC only answers from its own chart page, the extension opens that page in a background tab, which closes itself after a couple of minutes.</li>
         <li>Nothing is collected or sent anywhere except IRCTC. <a href="privacy.html">Privacy policy</a></li>
       </ul>
     </section>

@@ -1,0 +1,238 @@
+/* App shell (index.html).
+   Phone:   one column (form, then results), as before.
+   Tablet:  one wider column.
+   Laptop:  form in a sticky left column, results (or the intro) on the right, so the search
+            stays in view while scrolling through berths. */
+
+:root {
+  --header-h: 59px;
+  --app-max: 1240px;
+}
+
+.app {
+  width: 100%;
+  max-width: calc(var(--container) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  display: grid;
+  gap: var(--s-5);
+}
+
+.app__side,
+.app__main {
+  min-width: 0;
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.results {
+  margin-top: 0;
+}
+
+/* The intro panel only fills the empty right column on wide screens. */
+.intro {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .app {
+    max-width: calc(640px + 2 * var(--gutter));
+  }
+  .site-header__inner {
+    max-width: calc(640px + 2 * var(--gutter));
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 32px;
+  }
+
+  .site-header__inner {
+    max-width: calc(var(--app-max) + 2 * var(--gutter));
+  }
+
+  .app {
+    max-width: calc(var(--app-max) + 2 * var(--gutter));
+    grid-template-columns: minmax(380px, 420px) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .app__side {
+    position: sticky;
+    top: var(--header-h);
+    max-height: calc(100vh - var(--header-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    /* room for the search card's shadow inside the scroll box */
+    padding: var(--s-5) 14px var(--s-6);
+    margin-inline: -14px;
+  }
+
+  .app__side .hero {
+    padding-top: 0;
+    gap: var(--s-3);
+  }
+
+  .app__side .hero__title {
+    font-size: 30px;
+  }
+  .app__side .hero__title br {
+    display: none;
+  }
+  .app__side .hero__title .accent::before {
+    content: ' ';
+  }
+
+  /* The intro panel on the right carries the explanation, so the whole form fits a laptop
+     screen without scrolling. */
+  .app__side .hero__lead {
+    display: none;
+  }
+
+  .app__side .search-card {
+    padding: 18px;
+    gap: 14px;
+  }
+  .app__side .input,
+  .app__side .select {
+    min-height: 48px;
+  }
+  .app__side .segmented--3 .segmented__opt span {
+    min-height: 50px;
+  }
+  .app__side .field-row {
+    gap: var(--s-3);
+  }
+  .app__side .segmented--compact {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .app__side .segmented--compact .segmented__opt {
+    flex: 1 1 0;
+  }
+  .app__side .field--narrow {
+    min-width: 116px;
+  }
+  .app__side .hint {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .app__side .btn--primary {
+    min-height: 52px;
+  }
+
+  .app__main {
+    padding-top: var(--s-5);
+    padding-bottom: var(--s-7);
+  }
+
+  .intro {
+    display: grid;
+    gap: var(--s-5);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-xl);
+    padding: 28px;
+    box-shadow: var(--shadow);
+  }
+  .intro[hidden] {
+    display: none;
+  }
+
+  .site-footer {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1180px) {
+  .plan-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+/* Intro panel ("how it works") */
+.intro__title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.intro__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+
+.intro__steps li {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: var(--field);
+  border: var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+}
+
+.intro__steps strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.intro__steps p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.intro__num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-ink);
+}
+
+.intro__example {
+  margin: 0;
+  padding: var(--s-4) var(--s-5) 0;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-lg);
+}
+
+.intro__example figcaption {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.intro__ext {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ok);
+}
+.intro__ext::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok-dot);
+}

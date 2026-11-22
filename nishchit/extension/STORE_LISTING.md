@@ -17,6 +17,7 @@ The chart is public on IRCTC's website, but IRCTC doesn't let other websites rea
 What it does
 • Reads only the public chart for the train you search: route, coach list and berth vacancy.
 • Works only on the Nishchit website. Does nothing anywhere else.
+• Opens Nishchit once after you install it, so you can see it worked.
 • May briefly open IRCTC's chart page in a background tab when IRCTC needs it. The tab closes itself after a couple of minutes.
 
 What it doesn't do

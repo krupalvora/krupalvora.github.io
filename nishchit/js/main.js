@@ -3,9 +3,10 @@ import { buildSearchResult } from './app/search.js';
 import { createExtensionFetch, detectExtension, IRCTC_BASE } from './data/extensionBridge.js';
 import { IrctcProvider } from './data/irctcProvider.js';
 import { NoSourceProvider, ProviderError } from './data/provider.js';
+import { isMobileDevice } from './env.js';
 import { toISODate } from './domain/time.js';
 import { isComplete, queryFromParams, queryToParams } from './state/query.js';
-import { hydrateIcons } from './ui/dom.js';
+import { h, hydrateIcons, icon } from './ui/dom.js';
 import { createResultsView } from './ui/results.js';
 import { SearchForm } from './ui/searchForm.js';
 
@@ -18,12 +19,9 @@ async function bootstrap() {
 
   const today = toISODate(new Date());
   const { provider, via } = await selectProvider();
-  const results = createResultsView({ root: document.getElementById('results') });
+  const results = createResultsView({ root: document.getElementById('results'), intro: document.getElementById('intro') });
   if (via) console.info(`[nishchit] IRCTC data via ${via}`);
-  // Without the extension (or a dev proxy) searches go to the Worker, which IRCTC blocks.
-  if (via === 'proxy' && !new URLSearchParams(location.search).has('proxy') && location.hostname !== 'localhost') {
-    document.getElementById('extension-notice')?.removeAttribute('hidden');
-  }
+  showExtensionState(via);
 
   let inFlight = null;
 
@@ -127,6 +125,19 @@ async function selectProvider() {
     };
   }
 
+  // Phones and tablets can't run the extension, and IRCTC blocks the server route, so a search
+  // there can only fail. Say why, plainly, instead of showing a server error.
+  if (isMobileDevice()) {
+    return {
+      via: 'mobile',
+      provider: new NoSourceProvider(
+        new ProviderError('Nishchit needs a laptop or desktop to read the live chart.', 'needs-desktop', {
+          hint: `It uses a free browser extension, which phones and tablets can't run. Open this page in Chrome, Edge or Brave on a computer. You can check the chart on IRCTC from your phone meanwhile: ${CONFIG.chartsUrl}`,
+        }),
+      ),
+    };
+  }
+
   const base = live.base;
   if (base) return { via: 'proxy', provider: new IrctcProvider({ ...common, base, via: 'proxy', extensionUrl: CONFIG.extension.installUrl }) };
 
@@ -138,6 +149,81 @@ async function selectProvider() {
       }),
     ),
   };
+}
+
+/**
+ * Tell the user where chart data comes from:
+ *   - just installed (the extension opens ?welcome=1): a one-time "you're all set" banner;
+ *   - extension present: a quiet "connected" line in the intro panel;
+ *   - no extension on the production site: a prompt to install it (the Worker is blocked).
+ */
+function showExtensionState(via) {
+  const params = new URLSearchParams(location.search);
+  const notice = document.getElementById('extension-notice');
+  const introLine = document.getElementById('intro-extension');
+  const hasExtension = via?.startsWith('extension');
+
+  if (params.has('welcome')) {
+    params.delete('welcome');
+    history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
+    if (hasExtension && notice) {
+      notice.classList.add('extension-notice--ok');
+      notice.replaceChildren(document.createTextNode("You're all set: the Nishchit extension is installed. Enter a train to see its live chart."));
+      notice.hidden = false;
+      return;
+    }
+  }
+
+  if (via === 'mobile') {
+    showMobileNotice(notice);
+    return;
+  }
+
+  if (hasExtension && introLine) {
+    introLine.textContent = 'Extension connected: charts load live from your browser.';
+    introLine.hidden = false;
+  } else if (via === 'proxy' && !params.has('proxy') && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+    notice?.removeAttribute('hidden');
+  }
+}
+
+/** Phones/tablets: explain the extension needs a computer, and make it easy to move there. */
+function showMobileNotice(notice) {
+  if (!notice) return;
+  document.body.classList.add('is-mobile-device');
+  const link = location.href;
+  const shareBtn = h(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn--sm btn--dark',
+      onclick: async () => {
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: 'Nishchit', text: 'Open Nishchit on my laptop', url: link });
+            return;
+          }
+          await navigator.clipboard.writeText(link);
+          shareBtn.lastChild.textContent = 'Link copied';
+        } catch (err) {
+          if (err?.name !== 'AbortError') shareBtn.lastChild.textContent = 'Copy the address bar link';
+        }
+      },
+    },
+    icon('external'),
+    h('span', {}, navigator.share ? 'Send link to my computer' : 'Copy link'),
+  );
+  notice.classList.add('extension-notice--mobile');
+  notice.replaceChildren(
+    h('strong', { class: 'extension-notice__title' }, 'Open Nishchit on a laptop or desktop'),
+    h(
+      'span',
+      {},
+      'Nishchit reads the live chart through a free browser extension, and phones and tablets can’t run extensions. You can look around here; to search, open this page in Chrome, Edge or Brave on a computer.',
+    ),
+    h('span', { class: 'extension-notice__actions' }, shareBtn, h('a', { href: CONFIG.chartsUrl, target: '_blank', rel: 'noopener' }, 'Check the chart on IRCTC')),
+  );
+  notice.hidden = false;
 }
 
 /** server.mjs answers /__nishchit/health; a plain static server (or Pages) does not. */

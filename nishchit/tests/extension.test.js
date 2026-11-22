@@ -150,3 +150,15 @@ test('install page picks the right instructions for each device', async () => {
   assert.equal(compareVersions('1.2', '1.10'), -1);
   assert.equal(compareVersions('2.0.0', '2.0'), 0);
 });
+
+test('phones and tablets are told Nishchit needs a computer; desktops are not', async () => {
+  const { detectEnvironment, isMobileDevice } = await import('../js/env.js');
+  const mobile = (userAgent, extra = {}) => isMobileDevice(detectEnvironment({ userAgent, maxTouchPoints: 0, ...extra }));
+  assert.equal(mobile('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36'), true);
+  assert.equal(mobile('Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36'), true); // Android tablet
+  assert.equal(mobile('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'), true);
+  assert.equal(mobile('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15', { maxTouchPoints: 5 }), true); // iPad
+  assert.equal(mobile('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36'), false);
+  assert.equal(mobile('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0'), false);
+  assert.equal(mobile('Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36'), false);
+});

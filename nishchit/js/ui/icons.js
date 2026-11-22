@@ -19,4 +19,5 @@ export const ICONS = Object.freeze({
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
   moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
 });

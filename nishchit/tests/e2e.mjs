@@ -190,6 +190,15 @@ outer: for (const want of ['partial', 'none']) {
   }
 }
 
+/** Mirrors results.js: the stitched plan, then "to X" / "from Y" only when they switch less. */
+function fallbackPlans(exp) {
+  const best = exp.stitched;
+  const seated = (legs) => legs.reduce((s, l) => s + l.km, 0);
+  const keep = (p) => !best || (p.switches < best.switches && seated(p.legs) < best.seatedKm);
+  const simpler = [exp.partial?.plan, exp.boardLater?.plan].filter((p) => p && keep(p));
+  return [best, ...simpler].filter(Boolean).map((p) => p.legs.filter((l) => !l.gap));
+}
+
 let failed = 0;
 async function check(name, fn) {
   try {
@@ -215,7 +224,7 @@ for (const { name, q } of scenarios) {
     const expPlans =
       exp.plans.length > 0
         ? exp.plans.map((p) => p.legs.flatMap((l) => l.berths.map((b) => b.id)))
-        : [exp.partial, exp.boardLater].filter(Boolean).map((x) => x.plan.legs.flatMap((l) => l.berths.map((b) => b.id)));
+        : fallbackPlans(exp).map((legs) => legs.flatMap((l) => l.berths.map((b) => b.id)));
     assert.deepEqual(dom.plans, expPlans, `plan berths (status ${exp.status})`);
   });
 }

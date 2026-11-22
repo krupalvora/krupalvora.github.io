@@ -32,13 +32,16 @@ export const DEFAULT_ENGINE_OPTIONS = Object.freeze({
   sideBerthLongLegMin: 6 * 60,
   sideBerthLongLegPenalty: 5,
   maxPlans: 3,
+  // Stitched plan (used when no full plan exists): seated legs with standing gaps between
+  // them, as many seated km as possible. More legs are allowed here than for a full plan.
+  maxStitchedLegs: 5,
 });
 
 const COST_SIZE = 6;
 const ZERO_COST = Object.freeze(new Array(COST_SIZE).fill(0));
 
 export function compareCost(a, b) {
-  for (let i = 0; i < COST_SIZE; i += 1) {
+  for (let i = 0; i < a.length; i += 1) {
     if (a[i] !== b[i]) return a[i] - b[i];
   }
   return 0;
@@ -58,7 +61,7 @@ function addCost(a, b) {
  * @param {Array<string>} [input.coachOrder] coach ids in train composition order
  * @param {Function} [input.fareFn]  (cls, km) -> rupees
  * @param {object} [input.options]   overrides for DEFAULT_ENGINE_OPTIONS
- * @returns {{status: 'full'|'partial'|'none', plans: Array, partial: object|null, boardLater: object|null}}
+ * @returns {{status: 'full'|'partial'|'none', plans: Array, partial: object|null, boardLater: object|null, stitched: object|null}}
  */
 export function planJourney(input) {
   const ctx = createContext(input);
@@ -67,7 +70,7 @@ export function planJourney(input) {
   const run = search(ctx, origin, new Set());
   const best = run.planTo(destination);
   if (best) {
-    return { status: 'full', plans: alternatives(ctx, best), partial: null, boardLater: null };
+    return { status: 'full', plans: alternatives(ctx, best), partial: null, boardLater: null, stitched: null };
   }
 
   // Fallback ladder, last rung: get as far as possible, and say where seats resume.
@@ -89,7 +92,8 @@ export function planJourney(input) {
     }
   }
 
-  return { status: partial || boardLater ? 'partial' : 'none', plans: [], partial, boardLater };
+  const stitched = stitch(ctx);
+  return { status: partial || boardLater || stitched ? 'partial' : 'none', plans: [], partial, boardLater, stitched };
 }
 
 function createContext({
@@ -359,4 +363,156 @@ function alternatives(ctx, best) {
   }
 
   return [...pool.values()].sort((a, b) => compareCost(a.cost, b.cost)).slice(0, ctx.opts.maxPlans);
+}
+
+/* ----------------------------- stitching ----------------------------- */
+
+/**
+ * Most-seated plan when no full plan exists: seated legs joined by standing gaps (stretches
+ * where no berth is free), e.g. seated A→C, stand C→D, seated D→F. Dijkstra over states
+ * (station, mode, coach, seated legs so far) with costs compared lexicographically:
+ *   1. fewer standing km
+ *   2. fewer seated legs (= fewer switches)
+ *   3.. the same tie-breaks as a full plan (unsafe switches, split party, walks, fare, berths)
+ * A switch is only scored as unsafe between two berths; taking a berth after standing
+ * happens on board and doesn't depend on the halt. Returns null when nothing can be seated.
+ */
+function stitch(ctx) {
+  const { route, origin, destination } = ctx;
+  const maxLegs = Math.max(ctx.opts.maxStitchedLegs, ctx.maxLegs);
+  const { cands, supply } = buildCandidates(ctx, origin, new Set());
+
+  const keyOf = (station, mode, coach, n) => `${station}|${mode}|${coach ?? ''}|${n}`;
+  const startKey = keyOf(origin, 'start', null, 0);
+  const nodes = new Map([[startKey, { station: origin, mode: 'start', coach: null, n: 0, cost: new Array(COST_SIZE + 1).fill(0), prev: null, leg: null }]]);
+  const done = new Set();
+  // Entries carry a snapshot of the cost, so a later improvement can't break heap order.
+  const heap = new MinHeap((x, y) => compareCost(x.cost, y.cost));
+  heap.push({ key: startKey, cost: nodes.get(startKey).cost });
+
+  const relax = (node, key, station, mode, coach, n, step, leg) => {
+    const cost = addCost(node.cost, step);
+    const nextKey = keyOf(station, mode, coach, n);
+    const existing = nodes.get(nextKey);
+    if (existing && compareCost(cost, existing.cost) >= 0) return;
+    nodes.set(nextKey, { station, mode, coach, n, cost, prev: key, leg });
+    heap.push({ key: nextKey, cost });
+  };
+
+  let bestEnd = null;
+  while (heap.size) {
+    const { key } = heap.pop();
+    if (done.has(key)) continue;
+    done.add(key);
+    const node = nodes.get(key);
+    const a = node.station;
+    if (a === destination) {
+      if (node.n > 0) { bestEnd = node; break; }
+      continue;
+    }
+
+    // Seated legs from here.
+    if (node.n < maxLegs) {
+      const risky = node.mode === 'seat' && switchRisk(route[a], ctx.opts) ? 1 : 0;
+      const row = cands[a] ?? [];
+      for (let b = a + 1; b <= destination; b += 1) {
+        for (const option of row[b] ?? []) {
+          const km = legKm(route, a, b);
+          const fare = option.berths.reduce((s, x) => s + ctx.fareFn(x.cls, km), 0);
+          const walk = node.mode === 'seat' ? walkCost(ctx, node.coach, option.coach) : 0;
+          relax(node, key, b, 'seat', option.coach, node.n + 1, [0, 1, risky, option.split, walk, fare, option.penalty], {
+            from: a, to: b, coach: option.coach, berths: option.berths, fare, split: option.split,
+          });
+        }
+      }
+    }
+
+    // Stand from here to any later station (never two standing stretches in a row).
+    if (node.mode !== 'stand') {
+      for (let b = a + 1; b <= destination; b += 1) {
+        const km = legKm(route, a, b);
+        relax(node, key, b, 'stand', node.coach, node.n, [km, 0, 0, 0, 0, 0, 0], { from: a, to: b, gap: true });
+      }
+    }
+  }
+  if (!bestEnd) return null;
+
+  const raw = [];
+  for (let n = bestEnd; n.prev !== null; n = nodes.get(n.prev)) raw.unshift(n.leg);
+  let prevSeat = null;
+  const legs = raw.map((leg) => {
+    const base = { ...leg, km: legKm(route, leg.from, leg.to), minutes: legMinutes(route, leg.from, leg.to) };
+    if (leg.gap) {
+      prevSeat = null;
+      return { ...base, coach: null, berths: [], fare: 0, split: 0, supply: 0, switchRisk: null };
+    }
+    const switchAt = prevSeat ? route[leg.from] : null;
+    prevSeat = leg;
+    return {
+      ...base,
+      supply: supply.get(`${leg.from}:${leg.to}`)?.length ?? 0,
+      switchRisk: switchAt ? switchRisk(switchAt, ctx.opts) : null,
+    };
+  });
+
+  const seated = legs.filter((l) => !l.gap);
+  return {
+    legs,
+    switches: seated.length - 1,
+    fare: seated.reduce((s, l) => s + l.fare, 0),
+    cost: bestEnd.cost,
+    seatedKm: seated.reduce((s, l) => s + l.km, 0),
+    standingKm: bestEnd.cost[0],
+    bookingOrder: legs
+      .map((leg, i) => ({ i, leg }))
+      .filter((x) => !x.leg.gap)
+      .sort((x, y) => x.leg.supply - y.leg.supply || x.i - y.i)
+      .map((x) => x.i),
+    signature: signature(seated),
+  };
+}
+
+/** Small binary min-heap; the stitched search has too many states for linear extraction. */
+class MinHeap {
+  constructor(cmp) {
+    this.cmp = cmp;
+    this.items = [];
+  }
+
+  get size() {
+    return this.items.length;
+  }
+
+  push(x) {
+    const a = this.items;
+    a.push(x);
+    let i = a.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (this.cmp(a[i], a[p]) >= 0) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+
+  pop() {
+    const a = this.items;
+    const top = a[0];
+    const last = a.pop();
+    if (a.length) {
+      a[0] = last;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l < a.length && this.cmp(a[l], a[m]) < 0) m = l;
+        if (r < a.length && this.cmp(a[r], a[m]) < 0) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
 }

@@ -39,6 +39,10 @@ export function buildSearchResult({ train, chart, query, now = new Date(), chart
 
   const partial = pickBest(perClass, 'partial', (x) => x.reachedIndex, true);
   const boardLater = pickBest(perClass, 'boardLater', (x) => x.boardIndex, false);
+  const stitched = perClass
+    .filter((r) => r.stitched)
+    .map((r) => ({ ...r.stitched, cls: r.cls }))
+    .sort((a, b) => compareCost(a.cost, b.cost))[0] ?? null;
 
   const inClasses = chart.berths.filter((b) => classes.includes(b.cls));
   const seats = inClasses
@@ -75,10 +79,11 @@ export function buildSearchResult({ train, chart, query, now = new Date(), chart
     via: chart.via,
     warnings: chart.warnings ?? [],
     fetchedAt: chart.fetchedAt,
-    status: plans.length ? 'full' : partial || boardLater ? 'partial' : 'none',
+    status: plans.length ? 'full' : partial || boardLater || stitched ? 'partial' : 'none',
     plans: plans.slice(0, 5),
     partial,
     boardLater,
+    stitched,
     seats,
     coaches,
     throughFares,

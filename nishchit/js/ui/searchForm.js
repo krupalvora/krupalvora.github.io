@@ -186,7 +186,8 @@ export class SearchForm {
       this.train = null;
       this.lookupError = err;
       this.onError(err, { trainLookup: number });
-      this.setTrainStatus('error', err?.message || String(err));
+      // "Needs a computer" isn't something the user typed wrong: no red field for it.
+      this.setTrainStatus(err?.code === 'needs-desktop' ? 'loading' : 'error', err?.message || String(err));
     }
     this.refreshTrainDependent();
     return this.train;

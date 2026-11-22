@@ -76,6 +76,31 @@ test('partial plan and board-later hint when a gap exists', () => {
   assert.equal(r.boardLater.boardIndex, 3);
 });
 
+test('stitched plan joins "to X" and "from Y" with a standing gap between them', () => {
+  // Seated A→C (two berths), nothing C→D, seated D→E.
+  const r = plan([berth('S1', 'LB', [0, 1]), berth('S1', 'UB', [1, 2]), berth('S2', 'LB', [3, 4])]);
+  const s = r.stitched;
+  assert.deepEqual(s.legs.map((l) => [l.from, l.to, Boolean(l.gap)]), [[0, 1, false], [1, 2, false], [2, 3, true], [3, 4, false]]);
+  assert.equal(s.standingKm, 60);
+  assert.equal(s.seatedKm, 180);
+  assert.equal(s.switches, 2);
+  assert.equal(s.fare, 300);
+});
+
+test('stitched plan prefers fewer standing km over fewer switches', () => {
+  // One berth A→B (60 km seated) vs. three short berths covering A→D (180 km seated).
+  const r = plan([berth('S1', 'LB', [0, 2]), berth('S1', 'LB', [2, 3]), berth('S1', 'LB', [1, 2])]);
+  assert.equal(r.stitched.standingKm, 60);
+  assert.equal(r.stitched.legs.at(-1).gap, true);
+});
+
+test('stitched plan may exceed maxSwitches to seat the whole way', () => {
+  const berths = [berth('S1', 'LB', [0, 1]), berth('S1', 'LB', [1, 2]), berth('S1', 'LB', [2, 3]), berth('S1', 'LB', [3, 4])];
+  const s = plan(berths, 0, 4, { options: { maxSwitches: 2 } }).stitched;
+  assert.equal(s.standingKm, 0);
+  assert.equal(s.switches, 3);
+});
+
 test('none when nothing is free', () => {
   const r = plan([berth('S1', 'LB')]);
   assert.equal(r.status, 'none');

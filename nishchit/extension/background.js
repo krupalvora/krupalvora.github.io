@@ -20,6 +20,14 @@ const TAB_LOAD_TIMEOUT_MS = 30000;
 const PREFER_TAB_FOR_MS = 10 * 60 * 1000;
 const CLOSE_OWN_TAB_AFTER_MS = 2 * 60 * 1000;
 
+const WELCOME_URL = 'https://krupalvora.github.io/nishchit/?welcome=1';
+
+// First install: open Nishchit so the user sees it worked ("You're all set") without having
+// to find their way back.
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === 'install') chrome.tabs.create({ url: WELCOME_URL }).catch(() => {});
+});
+
 let queue = Promise.resolve();
 let lastRequestAt = 0;
 let preferTabUntil = 0;
