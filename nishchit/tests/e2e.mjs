@@ -119,7 +119,7 @@ function dumpDom(query) {
   return new Promise((resolve, reject) => {
     execFile(
       CHROME,
-      ['--headless=new', '--disable-gpu', '--no-first-run', '--virtual-time-budget=20000', '--dump-dom', `${BASE}?${query}`],
+      ['--headless=new', '--disable-gpu', '--no-first-run', '--virtual-time-budget=20000', '--dump-dom', `${BASE}?${query}&proxy=${encodeURIComponent(BASE)}`],
       { maxBuffer: 20 * 1024 * 1024, timeout: 60_000 },
       (err, stdout) => (err ? reject(err) : resolve(stdout)),
     );

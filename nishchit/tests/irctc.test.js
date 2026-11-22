@@ -297,6 +297,49 @@ test('504 from Akamai is retried, then reported with status, endpoint and refere
   assert.match(err.message, /HTTP 504/);
 });
 
+test('a hung request is cut off by the per-request timeout, not left to stall', async () => {
+  let calls = 0;
+  // A fetch that never answers on its own; it resolves/rejects only when its signal aborts,
+  // the way a real fetch does. Without a deadline this would hang forever.
+  const hung = (url, init) =>
+    new Promise((_resolve, reject) => {
+      calls += 1;
+      init.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+    });
+  const p = new IrctcProvider({
+    base: 'https://proxy.example/',
+    maxRetries: 1,
+    requestTimeoutMs: 40, // fast deadline so the test is quick
+    endpoints: { schedule: 'eticketing/protected/mapps1/trnscheduleenquiry/{train}', trainComposition: 'online-charts/api/trainComposition', coachComposition: 'online-charts/api/coachComposition' },
+    fetchFn: hung,
+  });
+  const t0 = performance.now();
+  const err = await p.getTrain('19017').catch((e) => e);
+  const elapsed = performance.now() - t0;
+  assert.equal(calls, 2); // tried once, retried once — then gave up
+  assert.equal(err.code, 'timeout');
+  assert.match(err.message, /timed out/);
+  assert.ok(elapsed < 2000, `should fail fast, took ${Math.round(elapsed)}ms`);
+});
+
+test('a user abort during a request is not swallowed by the timeout machinery', async () => {
+  const ctl = new AbortController();
+  const hung = (url, init) =>
+    new Promise((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+    });
+  const p = new IrctcProvider({
+    base: 'https://proxy.example/',
+    maxRetries: 1,
+    requestTimeoutMs: 5000,
+    endpoints: { schedule: 'eticketing/protected/mapps1/trnscheduleenquiry/{train}', trainComposition: 'online-charts/api/trainComposition', coachComposition: 'online-charts/api/coachComposition' },
+    fetchFn: hung,
+  });
+  setTimeout(() => ctl.abort(), 20);
+  const err = await p.getTrain('19017', { signal: ctl.signal }).catch((e) => e);
+  assert.equal(err.name, 'AbortError'); // propagated as a real cancellation, not a timeout
+});
+
 test('403 passed through from IRCTC points the user to the IRCTC chart page', async () => {
   const err = await provider(async () => textRes('Access Denied', 403)).getTrain('19017').catch((e) => e);
   assert.equal(err.code, 'forbidden');
@@ -342,4 +385,26 @@ test('a coach IRCTC fails to return becomes a visible warning, not silent data l
   assert.equal(chart.berths.length, 1);
   assert.equal(chart.via, 'proxy');
   assert.deepEqual(chart.warnings, ['Coach B2: Coach data unavailable — its berths are not shown.']);
+});
+
+test('getChart emits a partial chart after each coach (progressive rendering)', async () => {
+  const p = provider(async (url, init) => {
+    if (String(url).endsWith('/trainComposition')) {
+      return jsonRes({ cdd: [{ coachName: 'B1', classCode: '3A' }, { coachName: 'B2', classCode: '3A' }], from: 'A', remote: 'A', chartOneDate: 'x' });
+    }
+    const coach = JSON.parse(init.body).coach;
+    return jsonRes({ coachName: coach, bdd: [{ berthNo: 1, berthCode: 'L', bsd: [{ from: 'A', to: 'D', occupancy: false }] }] });
+  });
+  p.coachGapMs = 0;
+  const events = [];
+  const chart = await p.getChart({ train: { number: '19017', route: route4() }, date: '2026-11-21', onProgress: (e) => events.push(e) });
+  // initial (0, null) + one per coach
+  assert.deepEqual(events.map((e) => e.done), [0, 1, 2]);
+  assert.deepEqual(events.map((e) => e.total), [2, 2, 2]);
+  assert.equal(events[0].chart, null);
+  assert.equal(events[1].chart.berths.length, 1); // first coach's berth already visible
+  assert.equal(events[1].chart.partial, true);
+  assert.equal(events[2].chart.berths.length, 2);
+  assert.equal(events[2].chart.partial, false); // last coach: not partial
+  assert.equal(chart.berths.length, 2);
 });

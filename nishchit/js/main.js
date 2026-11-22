@@ -48,14 +48,20 @@ async function bootstrap() {
     try {
       const train = await provider.getTrain(query.train, { signal: controller.signal });
       if (!train) throw new ProviderError(`IRCTC has no train numbered ${query.train}.`, 'not-found', { via: provider.via, hint: 'Check the train number.' });
+      const view = (chart) => buildSearchResult({ train, chart, query, chartRules: CONFIG.chartRules, engineOptions: CONFIG.engine });
       const chart = await provider.getChart({
         train,
         date: query.date,
         classes: query.cls === 'all' ? null : [query.cls],
         signal: controller.signal,
+        // Render berths as each coach arrives, so a long all-classes fetch isn't a blank spinner.
+        onProgress: ({ done, total, chart: partial }) => {
+          if (controller.signal.aborted) return;
+          if (partial?.berths?.length) results.renderPartial(view(partial), { done, total });
+          else results.renderLoading(query, { done, total });
+        },
       });
-      const result = buildSearchResult({ train, chart, query, chartRules: CONFIG.chartRules, engineOptions: CONFIG.engine });
-      if (!controller.signal.aborted) results.render(result);
+      if (!controller.signal.aborted) results.render(view(chart));
     } catch (err) {
       if (err?.name === 'AbortError') return;
       reportError(err, { query });
@@ -87,16 +93,18 @@ async function bootstrap() {
 
 /**
  * Pick the proxy that reaches IRCTC. There is no demo fallback.
- *   1. ?proxy=<url>, else CONFIG.live.base (the deployed Worker).
- *   2. localhost with server.mjs running: same-origin dev proxy.
- *   3. none: every search fails with a clear "not configured" error.
+ *   1. ?proxy=<url> — explicit override (tests, trying another deployment).
+ *   2. localhost with server.mjs running — the local dev proxy wins over the deployed Worker,
+ *      so local runs use your own IRCTC session.
+ *   3. CONFIG.live.base — the deployed Worker (production / Pages).
+ *   4. none — every search fails with a clear "not configured" error.
  */
 async function selectProvider() {
   const params = new URLSearchParams(location.search);
   const live = CONFIG.live;
   const common = { endpoints: live.endpoints, coachGapMs: live.coachGapMs, chartsUrl: CONFIG.chartsUrl };
 
-  const base = params.get('proxy') || live.base || ((await devProxyRunning()) ? location.origin : '');
+  const base = params.get('proxy') || ((await devProxyRunning()) ? location.origin : '') || live.base;
   if (base) return { via: 'proxy', provider: new IrctcProvider({ ...common, base, via: 'proxy' }) };
 
   return {

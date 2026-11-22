@@ -46,7 +46,6 @@ const TYPES = {
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36';
 
-const dumped = new Set();
 
 /**
  * A session gives the proxy a cookie and a way to refresh it.
@@ -103,22 +102,48 @@ async function proxy(req, res, session) {
       body,
     });
 
+  const started = Date.now();
+  const endpoint = req.url.split('?')[0].split('/').filter(Boolean).pop() || '';
+  // For coachComposition the coach + class are in the request body; surface them in the log.
+  let detail = '';
+  if (body) {
+    try {
+      const b = JSON.parse(body.toString());
+      detail = b.coach ? ` coach ${b.coach} (${b.cls})` : b.trainNo ? ` train ${b.trainNo} ${b.jDate ?? ''}`.trimEnd() : '';
+    } catch {
+      /* ignore */
+    }
+  }
+  const label = `${req.method} ${endpoint}${detail}`;
   let upstream;
   try {
     upstream = await call(session.get());
     // On 403 the Akamai session has rotated; refresh once (reloads the Chrome tab) and retry.
     if (upstream.status === 403) {
-      console.warn(`  403 from IRCTC for ${req.url} — refreshing session…`);
+      console.warn(`  ${stamp()} 403 from IRCTC for ${label} — refreshing session…`);
       const fresh = await session.refresh();
       if (fresh) upstream = await call(fresh);
     }
   } catch (err) {
+    console.warn(`  ${stamp()} ✖ ${label} — upstream fetch failed: ${err.message}`);
     res.writeHead(502, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ error: `Upstream fetch failed: ${err.message}` }));
     return;
   }
 
   const text = await upstream.text();
+  const note = (() => {
+    try {
+      const j = JSON.parse(text);
+      if (j.error) return `error: ${j.error}`;
+      if (Array.isArray(j.cdd)) return `${j.cdd.length} coaches`;
+      if (Array.isArray(j.bdd)) return `${j.bdd.length} berths`;
+    } catch {
+      /* not JSON */
+    }
+    return `${text.length} bytes`;
+  })();
+  console.log(`  ${stamp()} ${upstream.status === 200 ? '✔' : '•'} ${label} -> ${upstream.status} (${note}, ${Date.now() - started}ms)`);
   await dump(req.url, upstream.status, text);
   if (upstream.status === 403 && !AUTO) {
     console.warn('  Still 403 — the pasted cookie has expired; refresh .irctc-session.');
@@ -130,14 +155,24 @@ async function proxy(req, res, session) {
   res.end(text);
 }
 
+const stamp = () => new Date().toLocaleTimeString();
+
+/**
+ * Save every response (overwriting the latest per endpoint+coach), so .irctc-dumps/ always
+ * mirrors the most recent live search — a coach name in the query keeps coaches distinct.
+ */
 async function dump(reqUrl, status, text) {
-  const name = reqUrl.split('?')[0].split('/').filter(Boolean).pop() || 'root';
-  if (dumped.has(name)) return;
-  dumped.add(name);
+  const base = reqUrl.split('?')[0].split('/').filter(Boolean).pop() || 'root';
+  let coach = null;
+  try {
+    coach = JSON.parse(text)?.coachName ?? null; // coachComposition responses carry coachName
+  } catch {
+    /* not JSON */
+  }
+  const name = coach ? `${base}.${coach}` : base;
   try {
     await mkdir(DUMP_DIR, { recursive: true });
     await writeFile(join(DUMP_DIR, `${name}.${status}.json`), text);
-    console.log(`  dumped ${name} -> .irctc-dumps/${name}.${status}.json (${text.length} bytes)`);
   } catch (err) {
     console.warn(`  could not dump ${name}: ${err.message}`);
   }

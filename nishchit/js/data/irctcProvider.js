@@ -12,7 +12,7 @@ import { ProviderError } from './provider.js';
  * the user sees that, with a link to check the chart on IRCTC themselves.
  */
 export class IrctcProvider {
-  constructor({ base, endpoints, via = 'proxy', chartsUrl = 'https://www.irctc.co.in/online-charts/', coachGapMs = 0, maxRetries = 2, fetchFn = globalThis.fetch.bind(globalThis) }) {
+  constructor({ base, endpoints, via = 'proxy', chartsUrl = 'https://www.irctc.co.in/online-charts/', coachGapMs = 0, maxRetries = 1, requestTimeoutMs = 12000, fetchFn = globalThis.fetch.bind(globalThis) }) {
     if (!base) throw new Error('IrctcProvider needs a base URL.');
     this.base = base.endsWith('/') ? base : `${base}/`;
     this.endpoints = endpoints;
@@ -20,6 +20,10 @@ export class IrctcProvider {
     this.chartsUrl = chartsUrl;
     this.coachGapMs = coachGapMs;
     this.maxRetries = maxRetries;
+    // Akamai's edge holds a doomed request ~60s before returning 504, so without a client
+    // deadline one bad coach stalls the whole chart. Give up fast and mark that coach missing;
+    // progressive rendering already shows the coaches that did come back.
+    this.requestTimeoutMs = requestTimeoutMs;
     this.fetchFn = fetchFn;
     this.trainCache = new Map();
     this.chartCache = new Map();
@@ -62,7 +66,7 @@ export class IrctcProvider {
    *   just the class the user searched). Each coach call is a separate IRCTC round-trip, so
    *   fetching one class instead of all three is markedly faster. Omit for every class.
    */
-  async getChart({ train, date, classes = null, signal }) {
+  async getChart({ train, date, classes = null, signal, onProgress = null }) {
     const key = `${train.number}|${date}|${classes ? classes.join(',') : 'all'}`;
     if (this.chartCache.has(key)) return this.chartCache.get(key);
 
@@ -114,6 +118,9 @@ export class IrctcProvider {
 
     const coachCharts = new Map();
     const warnings = [];
+    // Each coach is a separate IRCTC round-trip, so the whole chart takes a while. Emit a
+    // partial chart after every coach so the UI can show berths as they arrive.
+    onProgress?.({ done: 0, total: wanted.length, chart: null });
     for (const [i, coach] of wanted.entries()) {
       if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
       if (i > 0 && this.coachGapMs) await delay(this.coachGapMs, signal);
@@ -134,6 +141,10 @@ export class IrctcProvider {
       // One coach failing should not sink the whole chart, but the user must know it's missing.
       if (raw === null || raw?.error) warnings.push(`Coach ${coach.coach}: ${raw?.error ?? 'IRCTC returned no data'} — its berths are not shown.`);
       coachCharts.set(coach.coach, parseCoachComposition(raw));
+      if (onProgress && !signal?.aborted) {
+        const partial = { ...assembleChart(composition, coachCharts, train.route), via: this.via, warnings: [...warnings], partial: i + 1 < wanted.length };
+        onProgress({ done: i + 1, total: wanted.length, chart: partial });
+      }
     }
     if (wanted.length && warnings.length === wanted.length) {
       throw new ProviderError(`IRCTC returned no berth data for any coach of train ${train.number}.`, 'upstream', {
@@ -153,6 +164,33 @@ export class IrctcProvider {
   url(template, params = {}) {
     const path = template.replace(/\{(\w+)\}/g, (_, k) => encodeURIComponent(params[k] ?? ''));
     return new URL(path, this.base);
+  }
+
+  /**
+   * A per-request deadline: returns an AbortSignal that fires if the caller aborts OR if
+   * requestTimeoutMs elapses, plus `timedOut` to tell the two apart and `clear()` to tidy up.
+   */
+  armTimeout(signal) {
+    const ctl = new AbortController();
+    const state = { signal: ctl.signal, timedOut: false, clear: () => {} };
+    if (!this.requestTimeoutMs) {
+      // No deadline: pass the caller's signal straight through.
+      return { signal: signal ?? ctl.signal, timedOut: false, clear: () => {} };
+    }
+    const timer = setTimeout(() => {
+      state.timedOut = true;
+      ctl.abort();
+    }, this.requestTimeoutMs);
+    const onAbort = () => ctl.abort();
+    if (signal) {
+      if (signal.aborted) ctl.abort();
+      else signal.addEventListener('abort', onAbort, { once: true });
+    }
+    state.clear = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+    };
+    return state;
   }
 
   getJson(url, signal, what) {
@@ -177,22 +215,33 @@ export class IrctcProvider {
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
       if (attempt > 0) await delay(400 * attempt, signal);
       let res;
+      const deadline = this.armTimeout(signal);
       try {
         res = await this.fetchFn(url, {
           ...init,
-          signal,
+          signal: deadline.signal,
           headers: {
             accept: 'application/json, text/plain, */*',
             'content-type': 'application/json',
           },
         });
       } catch (err) {
+        // A user-initiated abort propagates; our own deadline becomes a retryable timeout.
+        if (signal?.aborted) throw err;
+        if (deadline.timedOut) {
+          lastErr = new ProviderError(`IRCTC did not respond in time for ${what} (timed out after ${Math.round(this.requestTimeoutMs / 1000)}s).`, 'timeout', meta({
+            hint: 'IRCTC is slow or blocking right now. The rest of the chart is still shown.',
+          }));
+          continue;
+        }
         if (err?.name === 'AbortError') throw err;
         lastErr = new ProviderError(`Could not reach Nishchit's data server for ${what}.`, 'network', meta({
           hint: 'Check your internet connection and try again.',
           cause: err,
         }));
         continue;
+      } finally {
+        deadline.clear();
       }
 
       const text = await res.text().catch(() => '');

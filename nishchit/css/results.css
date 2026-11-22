@@ -604,3 +604,23 @@
   color: inherit;
   font-weight: 600;
 }
+
+/* Progressive (coach-by-coach) loading */
+.partial-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: var(--s-3, 12px);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--r-md, 10px);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.spinner--sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  flex: none;
+}

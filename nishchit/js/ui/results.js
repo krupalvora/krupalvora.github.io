@@ -38,16 +38,42 @@ export function createResultsView({ root }) {
     replaceChildren(root, ...children);
   }
 
-  function renderLoading(query) {
+  function renderLoading(query, progress = null) {
     root.setAttribute('aria-busy', 'true');
     show(
       h(
         'div',
         { class: 'results-head' },
-        h('div', {}, h('h2', { class: 'results-head__title' }, h('span', { class: 'mono' }, query.train), 'Finding vacant seats…')),
+        h(
+          'div',
+          {},
+          h('h2', { class: 'results-head__title' }, h('span', { class: 'mono' }, query.train), 'Finding vacant seats…'),
+          progress?.total ? h('p', { class: 'results-head__sub' }, progressText(progress)) : null,
+        ),
         h('div', { class: 'spinner', 'aria-hidden': 'true' }),
       ),
     );
+  }
+
+  /** Berths found so far, while later coaches are still being fetched. */
+  function renderPartial(r, progress) {
+    root.setAttribute('aria-busy', 'true');
+    show(
+      h(
+        'div',
+        { class: 'partial-banner', role: 'status' },
+        h('span', { class: 'spinner spinner--sm', 'aria-hidden': 'true' }),
+        h('span', {}, `${progressText(progress)} — showing berths found so far`),
+      ),
+      header(r),
+      statusHero(r),
+      warningsNote(r),
+      h('h2', { class: 'section-title' }, 'journey plans'),
+      plans(r),
+      h('h2', { class: 'section-title' }, `vacant berths so far (${r.seats.length})`),
+      seats(r),
+    );
+    // No scrollIntoView on partial updates — it would yank the page on every coach.
   }
 
   /** The real reason, what to do, and the technical facts to copy into a bug report. */
@@ -111,7 +137,11 @@ export function createResultsView({ root }) {
     replaceChildren(root);
   }
 
-  return { render, renderLoading, renderError, hide };
+  return { render, renderLoading, renderPartial, renderError, hide };
+}
+
+function progressText({ done, total }) {
+  return `Reading coach ${Math.min(done + 1, total)} of ${total}`;
 }
 
 /* ------------------------------ header ------------------------------ */
