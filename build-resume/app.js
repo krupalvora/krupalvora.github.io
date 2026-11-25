@@ -24,7 +24,7 @@
       },
       basics: {
         name: "Krupal Vinod Vora",
-        headline: "Senior Software Engineer | ERP & Cloud Architecture",
+        headline: "Senior Software Engineer",
         location: "Mumbai, India",
         phone: "+91 8104409285",
         email: "krupalvora789@gmail.com",
@@ -36,7 +36,7 @@
         ]
       },
       summary:
-        "Senior Software Engineer with 4+ years of experience designing, building, and operating production-grade ERP and data systems on AWS. Currently lead the ERP function at SolarSquare, single-handedly managing a horizontally scaled ERPNext platform serving 450+ users across finance, supply chain, and warehouse operations. Strong background in distributed systems, backend integrations, observability, and IT General Controls (ITGC) for audit and IPO readiness.",
+        "Full-Stack Engineer with 4+ years of experience architecting high-throughput data platforms on AWS and productionizing ML models. Proven track record driving conversion lift (+6%) and cost efficiency (-70%) through predictive scoring and automated ETL pipelines. Experienced in end-to-end backend integrations, database optimization, and decision science.",
       experience: [
         {
           role: "Software Development Engineer II (SDE-2)",
@@ -45,11 +45,11 @@
           start: "Oct 2024",
           end: "Present",
           bullets: [
-            "**Leading the ERP POD at SolarSquare,** architecting and operating a horizontally scaled, distributed, cloud-native ERP platform on AWS \u2014 Auto Scaling Group web tier (Gunicorn/Nginx/SocketIO), dedicated worker fleet, ElastiCache Redis, RDS MariaDB, S3, and Lambda \u2014 delivering enterprise-grade performance and elasticity for 450+ users across supply chain, finance, and warehouse operations (B2B & B2C).",
+            "**Leading the ERP team at SolarSquare,** architecting and operating a horizontally scaled, distributed, cloud-native ERP platform on AWS \u2014 Auto Scaling Group web tier (Gunicorn/Nginx/SocketIO), dedicated worker fleet, ElastiCache Redis, RDS MariaDB, S3, and Lambda \u2014 delivering enterprise-grade performance and elasticity for **450+** users across supply chain, finance, and warehouse operations (B2B & B2C).",
             "**Engineered and integrated mission-critical backend systems** \u2014 banking and payment gateway APIs, AMC lifecycle automation, and an Order Management System (OMS) \u2014 enabling end-to-end financial transactions and order automation across B2B and B2C channels.",
-            "**Inventory tracking & loss prevention** \u2014 built workflows and data pipelines that identified and prevented ~\u20b920 Lakhs of mid-mile logistics losses, improving operational transparency and warehouse efficiency.",
-            "**Implemented DevOps and observability best practices** by integrating Kibana for centralized logging and building an automated CI/CD pipeline with the GitHub API and LLM-powered (Claude, OpenCode) code reviews, improving developer velocity, code quality, and release efficiency.",
-            "**Strengthened IT General Controls (ITGC) posture for IPO readiness** by building a custom Role-Based Access Control (RBAC) framework with end-to-end activity logging, implementing maker-checker approval workflows on sensitive financial transactions (enforcing segregation of duties), and developing an audit framework that captures access, change, and approval evidence into structured reports \u2014 directly addressing the access, change, and operations control domains expected in SOX and ITGC audits."
+            "**Inventory tracking & loss prevention** \u2014 built workflows and data pipelines that identified and prevented **~\u20b970** Lakhs of mid-mile logistics losses, improving operational transparency and warehouse efficiency.",
+            "**Built an agentic development workflow for a production ERPNext platform** using Claude Code with a custom domain skill, a code-graph MCP server (~1.4M symbols) and Datadog/Slack/Jira connectors for production debugging, plus a docs-as-code CI gate and lint checks on changed lines only, which kept the agent's context accurate and sped up root-cause analysis.",
+            "**Strengthened IT General Controls (ITGC) posture for IPO readiness** by building a custom Role-Based Access Control (RBAC) framework with end-to-end activity logging, implementing maker-checker approval workflows on sensitive financial transactions (enforcing segregation of duties), and developing an audit framework that captures access, change, and approval evidence into structured reports, directly addressing the access, change, and operations control domains expected in **SOX and ITGC** audits."
           ],
           groups: []
         },
@@ -64,15 +64,16 @@
             {
               client: "Client: HDFC ERGO",
               bullets: [
-                "Engineered a supervised machine learning model to target WhatsApp campaigns at users with elevated lead-conversion probability, cutting messaging costs by 70% and significantly improving lead conversion efficacy.",
-                "Collaborated with Marketing and Engineering teams to build a unified marketing data pipeline optimising email, SMS, and WhatsApp channels, contributing to a 6% lift in overall lead conversion."
+                "Engineered and deployed an end-to-end supervised lead-scoring ML model (classification/probability scoring) to optimize WhatsApp campaigns, cutting marketing messaging spend by 70% and prioritizing high-propensity customer cohorts.",
+                "Partnered cross-functionally with Marketing, Product, and Engineering teams to build a unified marketing attribution data pipeline across Email, SMS, and WhatsApp, driving a 6% overall lift in lead conversion.",
+                "Conducted cohort retention and campaign conversion funnel analyses to translate customer acquisition data into actionable channel bidding and targeting strategies."
               ]
             },
             {
               client: "Client: Star Health Insurance",
               bullets: [
-                "Built ETL workflows, a Detail Data Store (DDS), automation scripts, production reports, and analytical dashboards using SQL and SAS-based technologies in a production environment.",
-                "Contributed to fraud-detection mechanisms leveraging data warehousing, rule engines, and custom rule sets exposed via APIs."
+                "Built production ETL workflows, a Detailed Data Store (DDS), and reporting dashboards using SQL and statistical modeling tools, tracking user lifecycle metrics and operational KPIs.",
+                "Designed rule-based and predictive fraud-detection engines exposed via low-latency REST APIs, automating real-time risk scoring on inbound policy data."
               ]
             }
           ]
@@ -84,13 +85,23 @@
           label: "Open Source Contributions",
           items: [
             {
-              name: "frappe/erpnext \u2014 Core Stock Module Performance Optimization \u00b7 [PR #51644](https://github.com/frappe/erpnext/pull/51644)",
-              org: "World's leading open-source ERP platform \u00b7 33.9K+ GitHub stars \u00b7 11.3K+ forks",
+              name: "ERPNext \u2014 Core Stock Module Performance Optimization \u00b7 [PR #51644](https://github.com/frappe/erpnext/pull/51644)",
+              org: "World's leading open-source ERP platform \u00b7 41.2K+ GitHub stars \u00b7 13.5K+ forks",
               start: "",
               end: "",
               bullets: [
                 "Refactored get_stock_ledgers_for_serial_nos to leverage ERPNext v15's Serial and Batch Bundle data model, replacing application-layer filtering with bundle-based SQL joins for serial-number validation while preserving backward compatibility with legacy SLE serial data.",
                 "Reduced query execution time from ~583s to ~67s (~8.7\u00d7 faster) and database queries from ~104K to ~14.5K (~86% reduction) on serial-tracked datasets \u2014 directly improving Delivery Note, Purchase Receipt, Stock Entry, and Stock Reconciliation workflows for the global ERPNext community."
+              ]
+            },
+            {
+              name: "Frappe Framework \u2014 API Authentication Security & Access Control Enforcement \u00b7 [PR #41885](https://github.com/frappe/frappe/pull/41885)",
+              org: "Full-stack web application framework \u00b7 11.1K+ GitHub stars \u00b7 5.5K+ forks",
+              start: "",
+              end: "",
+              bullets: [
+                "Identified and resolved an improper access control vulnerability (CWE-284) where restrict_ip allowlists were silently bypassed during API-key, Bearer token, and OAuth request authentication. Centralized IP validation in validate_auth() across supported versions (v14/v15/develop) while safeguarding realtime socket flows.",
+                "Plugged a critical security bypass on long-lived machine credentials, ensuring uniform enforcement of IP boundary policies across all REST/RPC entry points for thousands of production deployments globally."
               ]
             }
           ]
@@ -99,9 +110,9 @@
       skills: [
         { label: "Languages", items: "Python, SQL, JavaScript, HTML/CSS" },
         { label: "Frameworks & Platforms", items: "Frappe, ERPNext, Flask, FastAPI" },
-        { label: "Cloud & Infrastructure", items: "AWS (EC2, Auto Scaling Groups, RDS MariaDB, ElastiCache Redis, S3, Lambda, CloudWatch, IAM), Nginx, Linux / Bash, Docker" },
+        { label: "Cloud & Infrastructure", items: "AWS (EC2, Auto Scaling Groups, RDS - MariaDB, ElastiCache - Redis, S3, Lambda, CloudWatch, IAM), Nginx, Linux / Bash, Docker" },
         { label: "Data & Analytics", items: "ETL, Data Pipelines, Analytics, SAS" },
-        { label: "DevOps & Tooling", items: "Git / GitHub, CI/CD, Kibana, Supervisor" },
+        { label: "DevOps & Tooling", items: "Git / GitHub, CI/CD, Datadog, Supervisor" },
         { label: "Other", items: "REST APIs, System Design, GenAI / LLM Integration, DSA" }
       ],
       projects: [
@@ -114,7 +125,7 @@
         {
           name: "Amba Tech (NGO) \u2014 Event Management ERP",
           bullets: [
-            "Designed and developed an end-to-end ERP system with an Angular web app, mobile app, and Metabase dashboards for event management. Implemented a QR-based attendance system to enable precise tracking and data-driven decisions for the organising team."
+            "Designed and built an end-to-end event management platform with Metabase analytics dashboards and real-time tracking pipelines, enabling precise operational monitoring and data-driven decisions."
           ]
         }
       ],
@@ -124,7 +135,7 @@
       ],
       education: [
         {
-          degree: "Bachelor of Engineering, Information Technology",
+          degree: "Bachelor of Engineering, Information Technology (8.9/10 CGPA)",
           institution: "University of Mumbai",
           location: "Mumbai, India",
           start: "Jul 2018",
